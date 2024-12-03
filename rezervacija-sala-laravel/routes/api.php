@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\KorisnickaSesijaController;
 use App\Http\Controllers\PreporukaController;
 use App\Http\Controllers\RezervacijaController;
 use App\Http\Controllers\SalaController;
@@ -39,4 +40,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::resource('sale', SalaController::class);
+});
+
+Route::post('/registracija', [KorisnickaSesijaController::class, 'register']);
+Route::post('/prijava', [KorisnickaSesijaController::class, 'login']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/odjava', [KorisnickaSesijaController::class, 'logout']);
 });
