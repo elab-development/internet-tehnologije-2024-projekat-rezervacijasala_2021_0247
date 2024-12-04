@@ -9,7 +9,7 @@ class Sala extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['naziv', 'tip', 'kapacitet', 'opis', 'status'];
+    protected $fillable = ['naziv', 'tip', 'kapacitet', 'opis', 'status', 'file_path'];
 
     public function rezervacije()
     {

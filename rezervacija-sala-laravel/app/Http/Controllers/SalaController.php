@@ -82,4 +82,23 @@ class SalaController extends Controller
 
         return response()->json(['message' => 'Sala je uspešno obrisana.'], 200);
     }
+
+    public function uploadFile(Request $request, $id)
+    {
+        $sala = Sala::findOrFail($id);
+
+        $validated = $request->validate([
+            'file' => 'required|file|mimes:jpg,png,pdf,doc,docx,zip|max:5120', 
+        ]);
+
+        $path = $request->file('file')->store('sala_files', 'public');
+
+        $sala->update(['file_path' => $path]);
+
+        return response()->json([
+            'message' => 'Fajl je uspešno otpremljen i povezan sa salom!',
+            'file_path' => asset('storage/' . $path),
+            'sala' => $sala,
+        ], 200);
+    }
 }
