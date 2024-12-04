@@ -74,4 +74,21 @@ class RezervacijaController extends Controller
 
         return response()->json(['message' => 'Rezervacija je uspešno obrisana.'], 200);
     }
+
+    public function paginatedAndFiltered(Request $request)
+    {
+        $query = Rezervacija::query();
+
+        if ($request->has('tip_dogadjaja')) {
+            $query->where('tip_dogadjaja', 'like', '%' . $request->tip_dogadjaja . '%');
+        }
+
+        if ($request->has('datum')) {
+            $query->where('datum', $request->datum);
+        }
+
+        $rezervacije = $query->paginate($request->get('per_page', 10));
+
+        return response()->json($rezervacije, 200);
+    }
 }

@@ -30,6 +30,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/rezervacije/{id}', [RezervacijaController::class, 'destroy']);
 });
 
+Route::get('/rezervacije/paginacija', [RezervacijaController::class, 'paginatedAndFiltered']);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/preporuke', [PreporukaController::class, 'index']);
     Route::get('/preporuke/{id}', [PreporukaController::class, 'show']);
