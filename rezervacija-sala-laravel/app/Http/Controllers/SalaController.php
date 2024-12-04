@@ -12,8 +12,15 @@ class SalaController extends Controller
 {
     public function index()
     {
-        $sale = Sala::all();
-        return response()->json(SalaResource::collection($sale), 200);
+        $cacheKey = 'sale_all';
+    
+        $cacheDuration = 60; 
+    
+        $sale = cache()->remember($cacheKey, $cacheDuration, function () {
+            return Sala::all();
+        });
+    
+        return response()->json($sale, 200);
     }
 
     public function show($id)
@@ -38,11 +45,15 @@ class SalaController extends Controller
 
         $sala = Sala::create($request->all());
 
+        cache()->forget('sale_all');
+
         return response()->json(new SalaResource($sala), 201);
     }
 
     public function update(Request $request, $id)
     {
+        cache()->forget('sale_all');
+
         $sala = Sala::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
@@ -64,6 +75,8 @@ class SalaController extends Controller
 
     public function destroy($id)
     {
+        cache()->forget('sale_all');
+
         $sala = Sala::findOrFail($id);
         $sala->delete();
 
