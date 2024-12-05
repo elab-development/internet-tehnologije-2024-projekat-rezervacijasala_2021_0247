@@ -1,10 +1,12 @@
 <?php
 
 use App\Http\Controllers\KorisnickaSesijaController;
+use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\PreporukaController;
 use App\Http\Controllers\RezervacijaController;
 use App\Http\Controllers\SalaController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -50,3 +52,6 @@ Route::post('/prijava', [KorisnickaSesijaController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/odjava', [KorisnickaSesijaController::class, 'logout']);
 });
+
+Route::post('/password/email', [PasswordController::class, 'posaljiLink']);
+Route::post('/password/reset', [PasswordController::class, 'restartujLozinku']);

@@ -16,3 +16,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/reset-password/{token}', function ($token) {
+    return response()->json([
+        'message' => 'Ovo je generisani link za reset lozinke.',
+        'token' => $token,
+    ]);
+})->name('password.reset');
