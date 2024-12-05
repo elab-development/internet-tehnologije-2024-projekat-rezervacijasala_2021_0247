@@ -5,7 +5,9 @@ use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\PreporukaController;
 use App\Http\Controllers\RezervacijaController;
 use App\Http\Controllers\SalaController;
+use App\Models\Sala;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Route;
 
@@ -55,3 +57,32 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::post('/password/email', [PasswordController::class, 'posaljiLink']);
 Route::post('/password/reset', [PasswordController::class, 'restartujLozinku']);
+
+Route::get('/sala/{id}/konverzija/{valuta}', function ($id, $valuta) {
+    $sala = Sala::findOrFail($id);
+
+    if (!$sala->cena) {
+        return response()->json(['message' => 'Cena nije postavljena za ovu salu.'], 404);
+    }
+
+    $response = Http::get('https://api.exchangerate-api.com/v4/latest/USD');
+
+    if ($response->successful()) {
+        $exchangeRates = $response->json()['rates'];
+
+        if (!isset($exchangeRates[$valuta])) {
+            return response()->json(['message' => 'Valuta nije podržana.'], 400);
+        }
+
+        $convertedPrice = $sala->cena * $exchangeRates[$valuta];
+
+        return response()->json([
+            'sala' => $sala->naziv,
+            'osnovna_cena' => $sala->cena . ' USD',
+            'konvertovana_cena' => number_format($convertedPrice, 2) . " $valuta",
+            'kurs' => $exchangeRates[$valuta],
+        ], 200);
+    }
+
+    return response()->json(['message' => 'Greška prilikom dobijanja podataka o kursu.'], 500);
+});
