@@ -8,7 +8,6 @@ use App\Http\Controllers\SalaController;
 use App\Models\Sala;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -26,26 +25,29 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/rezervacije', [RezervacijaController::class, 'index']);
-    Route::get('/rezervacije/{id}', [RezervacijaController::class, 'show']);
-    Route::post('/rezervacije', [RezervacijaController::class, 'store']);
-    Route::put('/rezervacije/{id}', [RezervacijaController::class, 'update']);
-    Route::delete('/rezervacije/{id}', [RezervacijaController::class, 'destroy']);
-});
-
 Route::get('/rezervacije/paginacija', [RezervacijaController::class, 'paginatedAndFiltered']);
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/preporuke', [PreporukaController::class, 'index']);
-    Route::get('/preporuke/{id}', [PreporukaController::class, 'show']);
-    Route::post('/preporuke', [PreporukaController::class, 'store']);
-    Route::put('/preporuke/{id}', [PreporukaController::class, 'update']);
-    Route::delete('/preporuke/{id}', [PreporukaController::class, 'destroy']);
+
+Route::middleware(['auth:sanctum', 'role:korisnik,menadzer'])->group(function () {
+    Route::get('/rezervacije/{id}', [RezervacijaController::class, 'show']);
+    Route::put('/rezervacije/{id}', [RezervacijaController::class, 'update']);
+    Route::delete('/rezervacije/{id}', [RezervacijaController::class, 'destroy']);
+    Route::get('/rezervacije', [RezervacijaController::class, 'index']);
+    Route::post('/rezervacije', [RezervacijaController::class, 'store']);
 });
 
+
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/preporuke/{id}', [PreporukaController::class, 'show']);
+    Route::put('/preporuke/{id}', [PreporukaController::class, 'update']);
+    Route::delete('/preporuke/{id}', [PreporukaController::class, 'destroy']);
+    Route::get('/preporuke', [PreporukaController::class, 'index']);
+    Route::post('/preporuke', [PreporukaController::class, 'store']);
+});
+
+Route::middleware(['auth:sanctum', 'role:administrator,menadzer'])->group(function () {
     Route::resource('sale', SalaController::class);
+    Route::post('/sale/upload/{id}', [SalaController::class, 'uploadFile']);
 });
 
 Route::post('/registracija', [KorisnickaSesijaController::class, 'register']);
