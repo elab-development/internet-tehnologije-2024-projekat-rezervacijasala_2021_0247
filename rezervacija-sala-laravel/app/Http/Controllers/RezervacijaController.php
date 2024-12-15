@@ -7,6 +7,7 @@ use App\Http\Resources\RezervacijaResource;
 use App\Models\Rezervacija;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class RezervacijaController extends Controller
 {
@@ -91,4 +92,39 @@ class RezervacijaController extends Controller
 
         return response()->json($rezervacije, 200);
     }
+
+    public function exportToCsv()
+    {
+        $fileName = 'rezervacije_' . now()->format('Y_m_d_H_i_s') . '.csv';
+        
+        // Streamovani odgovor za preuzimanje fajla
+        $response = new StreamedResponse(function () {
+            // Kreiraj pokazivač na izlazni tok podataka (output)
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, ['ID', 'Sala ID', 'Datum', 'Vreme Od', 'Vreme Do', 'Tip Događaja', 'Status']);
+
+            $rezervacije = Rezervacija::all();
+
+            foreach ($rezervacije as $rezervacija) {
+                fputcsv($handle, [
+                    $rezervacija->id,
+                    $rezervacija->sala_id,
+                    $rezervacija->datum,
+                    $rezervacija->vreme_od,
+                    $rezervacija->vreme_do,
+                    $rezervacija->tip_dogadjaja,
+                    $rezervacija->status,
+                ]);
+            }
+
+            fclose($handle);
+        });
+
+        $response->headers->set('Content-Type', 'text/csv');
+        $response->headers->set('Content-Disposition', 'attachment; filename="' . $fileName . '"');
+
+        return $response;
+    }
 }
+

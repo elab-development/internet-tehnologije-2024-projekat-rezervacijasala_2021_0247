@@ -29,6 +29,7 @@ Route::get('/rezervacije/paginacija', [RezervacijaController::class, 'paginatedA
 
 
 Route::middleware(['auth:sanctum', 'role:korisnik,menadzer'])->group(function () {
+    Route::get('/rezervacije/export/csv', [RezervacijaController::class, 'exportToCsv']);
     Route::get('/rezervacije/{id}', [RezervacijaController::class, 'show']);
     Route::put('/rezervacije/{id}', [RezervacijaController::class, 'update']);
     Route::delete('/rezervacije/{id}', [RezervacijaController::class, 'destroy']);
