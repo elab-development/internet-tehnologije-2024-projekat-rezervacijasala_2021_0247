@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import api from "../api/client";
 import SaleForm from "../components/SaleForm";
+import useSalesData from "../hooks/useSalesData";   // ⬅️ dodato
 import "./sale.css";
 
 const SORTABLE = {
@@ -12,43 +13,21 @@ const SORTABLE = {
 };
 
 export default function SalesAdminPage() {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [serverMsg, setServerMsg] = useState("");
+  const { items, setItems, loading, serverMsg, setServerMsg, reload } = useSalesData(); // ⬅️ koristimo hook
   const [editing, setEditing] = useState(null); // null=create, object=edit, false=closed
 
   // Filters & search
   const [queryRaw, setQueryRaw] = useState("");
-  const [query, setQuery] = useState(""); // debounced
+  const query = queryRaw.trim().toLowerCase(); // ⬅️ bez debounce-a
+
   const [status, setStatus] = useState("all"); // all | active | inactive
-  const [tip, setTip] = useState("all"); // dinamički
+  const [tip, setTip] = useState("all");       // dinamički
   const [capMin, setCapMin] = useState("");
   const [capMax, setCapMax] = useState("");
 
   // Sorting
   const [sortBy, setSortBy] = useState(SORTABLE.id);
   const [sortDir, setSortDir] = useState("desc"); // asc | desc
-
-  // Debounce search
-  useEffect(() => {
-    const t = setTimeout(() => setQuery(queryRaw.trim().toLowerCase()), 250);
-    return () => clearTimeout(t);
-  }, [queryRaw]);
-
-  // Load data
-  async function load() {
-    setLoading(true);
-    setServerMsg("");
-    try {
-      const res = await api.get("/sale"); // GET /api/sale
-      setItems(res.data?.data || res.data || []);
-    } catch (err) {
-      setServerMsg("Ne mogu da učitam sale. Proveri prijavu i ulogu (administrator/menadžer).");
-    } finally {
-      setLoading(false);
-    }
-  }
-  useEffect(() => { load(); }, []);
 
   // Create/Update/Delete
   async function handleCreate(payload) {
@@ -73,9 +52,7 @@ export default function SalesAdminPage() {
   // Dinamičke opcije za "Tip"
   const tipOptions = useMemo(() => {
     const set = new Set();
-    (items || []).forEach((x) => {
-      if (x?.tip) set.add(String(x.tip));
-    });
+    (items || []).forEach((x) => { if (x?.tip) set.add(String(x.tip)); });
     return ["all", ...Array.from(set)];
   }, [items]);
 
@@ -83,7 +60,7 @@ export default function SalesAdminPage() {
   const filteredSorted = useMemo(() => {
     let list = Array.isArray(items) ? [...items] : [];
 
-    // Pretraga (query po više polja)
+    // Pretraga
     if (query) {
       list = list.filter((x) => {
         const hay = [
@@ -92,25 +69,23 @@ export default function SalesAdminPage() {
           x?.opis ?? "",
           String(x?.kapacitet ?? ""),
           x?.status ? "aktivna" : "neaktivna",
-        ]
-          .join(" ")
-          .toLowerCase();
+        ].join(" ").toLowerCase();
         return hay.includes(query);
       });
     }
 
-    // Status filter
+    // Status
     if (status !== "all") {
       const flag = status === "active";
       list = list.filter((x) => Boolean(x?.status) === flag);
     }
 
-    // Tip filter
+    // Tip
     if (tip !== "all") {
       list = list.filter((x) => String(x?.tip ?? "") === tip);
     }
 
-    // Kapacitet opseg
+    // Kapacitet
     const min = capMin !== "" ? Number(capMin) : null;
     const max = capMax !== "" ? Number(capMax) : null;
     if (min !== null) list = list.filter((x) => Number(x?.kapacitet ?? 0) >= min);
@@ -122,15 +97,12 @@ export default function SalesAdminPage() {
       const A = a?.[sortBy];
       const B = b?.[sortBy];
 
-      // status kao boolean → uporedi po brojčanoj vrednosti
       if (sortBy === "status") {
         return (Number(Boolean(A)) - Number(Boolean(B))) * dir;
       }
-      // stringovi
       if (typeof A === "string" || typeof B === "string") {
         return String(A ?? "").localeCompare(String(B ?? ""), "sr", { sensitivity: "base" }) * dir;
       }
-      // brojevi / undefined
       return ((Number(A) || 0) - (Number(B) || 0)) * dir;
     });
 
@@ -138,12 +110,8 @@ export default function SalesAdminPage() {
   }, [items, query, status, tip, capMin, capMax, sortBy, sortDir]);
 
   function toggleSort(col) {
-    if (sortBy === col) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
-      setSortBy(col);
-      setSortDir(col === "id" ? "desc" : "asc");
-    }
+    if (sortBy === col) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortBy(col); setSortDir(col === "id" ? "desc" : "asc"); }
   }
 
   function resetFilters() {
@@ -158,7 +126,6 @@ export default function SalesAdminPage() {
 
   return (
     <div className="lp">
-      {/* dekorativna pozadina po želji */}
       <div aria-hidden="true" className="lp-bg">
         <div className="blob blob-1" />
         <div className="blob blob-2" />
@@ -170,12 +137,11 @@ export default function SalesAdminPage() {
           <div>
             <p className="eyebrow">Administracija</p>
             <h1>Sale — CRUD</h1>
-            <p className="muted">
-              Dodaj, izmeni ili obriši salu (naziv, tip, kapacitet, opis, status).
-            </p>
+            <p className="muted">Dodaj, izmeni ili obriši salu (naziv, tip, kapacitet, opis, status).</p>
           </div>
 
           <div className="sales-actions">
+            <button className="btn btn--ghost" onClick={reload}>🔄 Osveži</button>
             <button className="btn btn--primary" onClick={() => setEditing({})}>
               + Nova sala
             </button>
