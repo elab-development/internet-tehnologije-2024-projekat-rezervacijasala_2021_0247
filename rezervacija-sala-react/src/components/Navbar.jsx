@@ -6,9 +6,9 @@ export default function Navbar() {
   return (
     <header className="lp-header" role="banner">
       <nav className="lp-nav" aria-label="Glavna navigacija">
-        <Link className="brand" to="/" aria-label="Početna">
-          <span className="brand__logo" aria-hidden="true">🎬</span>
-          <span className="brand__text">SalaHub</span>
+        <Link className="brand" to="/" aria-label="Početna"> 
+          <span className="brand__text">REZERVACIJA SALA</span>
+
         </Link>
 
         <div className="nav-actions">

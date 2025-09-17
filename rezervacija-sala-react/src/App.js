@@ -1,22 +1,30 @@
-import logo from './logo.svg';
-import './App.css'; 
-import LandingPage from './pages/LandingPage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
+import "./App.css";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
+import LandingPage from "./pages/LandingPage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import Navbar from "./components/Navbar";
+
+ 
 
 function App() {
   return (
-    <>
-    <LandingPage>
+    <BrowserRouter>
+     
+       <Navbar /> 
 
-    </LandingPage>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage redirectTo="/app" />} />
+        <Route path="/registracija" element={<RegisterPage redirectTo="/app" />} />
 
-      <LoginPage></LoginPage>
-      
-      <RegisterPage></RegisterPage>
-      
-      
-      </>
+        <Route path="/app" element={<LandingPage />} />
+
+ 
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

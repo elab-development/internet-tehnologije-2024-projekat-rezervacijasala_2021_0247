@@ -12,16 +12,7 @@ export default function LandingPage() {
       </div>
 
       <header className="lp-header" role="banner">
-        <nav className="lp-nav" aria-label="Glavna navigacija">
-          <a className="brand" href="/" aria-label="Početna">
-            <span className="brand__logo" aria-hidden="true">🎬</span>
-            <span className="brand__text">SalaHub</span>
-          </a>
-          <div className="nav-actions">
-            <a className="btn btn--ghost" href="/login">Prijava</a>
-            <a className="btn btn--primary" href="/registracija">Registracija</a>
-          </div>
-        </nav>
+    
 
         <section className="hero">
           <p className="eyebrow">Laravel API + React UI</p>
