@@ -1,14 +1,20 @@
+// src/pages/RegisterPage.jsx
 import React, { useState } from "react";
-import api from "../api/client"; 
+import { useNavigate } from "react-router-dom";
+import api from "../api/client";
 import "./auth.css";
+
 import Input from "../components/ui/Input";
 import FormCard from "../components/ui/FormCard";
 import Alert from "../components/ui/Alert";
 import PasswordInput from "../components/ui/PasswordInput";
 import Button from "../components/ui/Button";
- 
+import { useAuth } from "../context/AuthContext";
 
-export default function RegisterPage({ onRegister, redirectTo = "/app" }) {
+export default function RegisterPage({ redirectTo = "/sale" }) {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -18,6 +24,8 @@ export default function RegisterPage({ onRegister, redirectTo = "/app" }) {
   const [errors, setErrors] = useState({});
   const [serverMsg, setServerMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingRandom, setLoadingRandom] = useState(false);
+  const [avatar, setAvatar] = useState(null); // dekorativno, ne šaljemo backendu
 
   const firstError = (v) => (Array.isArray(v) ? v[0] : v);
 
@@ -41,6 +49,29 @@ export default function RegisterPage({ onRegister, redirectTo = "/app" }) {
     return Object.keys(e).length === 0;
   };
 
+  async function fillWithRandom() {
+    setLoadingRandom(true);
+    setServerMsg("");
+    try {
+      const r = await fetch("https://randomuser.me/api/?nat=gb,us,fr,de,au");
+      const d = await r.json();
+      const u = d?.results?.[0];
+      if (!u) throw new Error("No user");
+
+      setForm((f) => ({
+        ...f,
+        name: `${u.name.first} ${u.name.last}`,
+        email: u.email,
+      }));
+      setAvatar(u.picture?.thumbnail || u.picture?.medium || null);
+      setServerMsg("Popunio sam ime i email nasumičnim korisnikom.");
+    } catch {
+      setServerMsg("Nije moguće preuzeti nasumičnog korisnika.");
+    } finally {
+      setLoadingRandom(false);
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
@@ -56,13 +87,11 @@ export default function RegisterPage({ onRegister, redirectTo = "/app" }) {
       });
 
       const { user, token, message } = res.data || {};
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-
-      if (typeof onRegister === "function") onRegister({ user, token });
+      // upiši u AuthContext + localStorage
+      login({ user, token });
 
       setServerMsg(message || "Registracija je uspešna!");
-      window.location.assign(redirectTo);
+      navigate(redirectTo, { replace: true }); // -> /sale
     } catch (err) {
       if (err?.response?.status === 422) {
         setErrors(err.response.data.errors || {});
@@ -77,6 +106,7 @@ export default function RegisterPage({ onRegister, redirectTo = "/app" }) {
 
   return (
     <div className="lp">
+      {/* Pozadinski blubovi */}
       <div aria-hidden="true" className="lp-bg">
         <div className="blob blob-1" />
         <div className="blob blob-2" />
@@ -94,6 +124,18 @@ export default function RegisterPage({ onRegister, redirectTo = "/app" }) {
             <Alert kind={serverMsg.toLowerCase().includes("greš") || serverMsg.toLowerCase().includes("pogreš") ? "danger" : "ok"}>
               {serverMsg}
             </Alert>
+          )}
+
+          {/* Dekorativni preview avatara (ako ga imamo iz random user-a) */}
+          {avatar && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+              <img
+                src={avatar}
+                alt="Avatar podrazumevanog korisnika"
+                style={{ width: 40, height: 40, borderRadius: 12, border: "1px solid var(--border)" }}
+              />
+              <span className="muted" style={{ fontSize: 13 }}>Nasumičan avatar (nije obavezan, služi kao primer)</span>
+            </div>
           )}
 
           <Input
@@ -142,9 +184,14 @@ export default function RegisterPage({ onRegister, redirectTo = "/app" }) {
             error={firstError(errors.password_confirmation)}
           />
 
-          <Button type="submit" variant="primary" fullWidth disabled={loading}>
-            {loading ? "Kreiranje naloga..." : "Registruj se"}
-          </Button>
+          <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+            <Button type="button" variant="ghost" onClick={fillWithRandom} disabled={loading || loadingRandom}>
+              {loadingRandom ? "Učitavam..." : "🎲 Popuni nasumičnim korisnikom"}
+            </Button>
+            <Button type="submit" variant="primary" fullWidth disabled={loading}>
+              {loading ? "Kreiranje naloga..." : "Registruj se"}
+            </Button>
+          </div>
 
           <p className="meta">
             Već imaš nalog? <a href="/login">Prijavi se</a>
@@ -152,9 +199,7 @@ export default function RegisterPage({ onRegister, redirectTo = "/app" }) {
         </FormCard>
       </main>
 
-      <footer className="lp-footer" role="contentinfo">
-        <p>© {new Date().getFullYear()} SalaHub • Registracija</p>
-      </footer>
+   
     </div>
   );
 }
