@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -18,5 +20,15 @@ class DatabaseSeeder extends Seeder
             RezervacijaSeeder::class,
             PreporukaSeeder::class,
         ]);
+
+        // ADMIN korisnik
+        User::updateOrCreate(
+            ['email' => 'admin@gmail.com'],  
+            [
+                'name' => 'Admin',
+                'password' => Hash::make('admin12345'),  
+                'role' => 'administrator',              
+            ]
+        );
     }
 }

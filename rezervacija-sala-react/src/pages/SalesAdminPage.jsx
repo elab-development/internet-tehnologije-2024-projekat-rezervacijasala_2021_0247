@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import api from "../api/client";
 import SaleForm from "../components/SaleForm";
-import useSalesData from "../hooks/useSalesData";   // ⬅️ dodato
+import useSalesData from "../hooks/useSalesData";
 import "./sale.css";
 
 const SORTABLE = {
@@ -13,12 +13,12 @@ const SORTABLE = {
 };
 
 export default function SalesAdminPage() {
-  const { items, setItems, loading, serverMsg, setServerMsg, reload } = useSalesData(); // ⬅️ koristimo hook
+  const { items, setItems, loading, serverMsg, setServerMsg, reload } = useSalesData();
   const [editing, setEditing] = useState(null); // null=create, object=edit, false=closed
 
   // Filters & search
   const [queryRaw, setQueryRaw] = useState("");
-  const query = queryRaw.trim().toLowerCase(); // ⬅️ bez debounce-a
+  const query = queryRaw.trim().toLowerCase();
 
   const [status, setStatus] = useState("all"); // all | active | inactive
   const [tip, setTip] = useState("all");       // dinamički
@@ -28,6 +28,10 @@ export default function SalesAdminPage() {
   // Sorting
   const [sortBy, setSortBy] = useState(SORTABLE.id);
   const [sortDir, setSortDir] = useState("desc"); // asc | desc
+
+  // Pagination (lokalna)
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10); // 5,10,20,50...
 
   // Create/Update/Delete
   async function handleCreate(payload) {
@@ -108,6 +112,33 @@ export default function SalesAdminPage() {
 
     return list;
   }, [items, query, status, tip, capMin, capMax, sortBy, sortDir]);
+
+  // Resetuj na prvu stranu kad se promene filteri/sort/lista
+  useEffect(() => {
+    setPage(1);
+  }, [queryRaw, status, tip, capMin, capMax, sortBy, sortDir, items]);
+
+  // Paginacija – izračunaj stranice i isečak
+  const total = filteredSorted.length;
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
+  const currentPage = Math.min(page, totalPages);
+  const startIdx = (currentPage - 1) * perPage;
+  const endIdx = Math.min(startIdx + perPage, total);
+  const pageItems = filteredSorted.slice(startIdx, endIdx);
+
+  function goto(p) {
+    const clamped = Math.max(1, Math.min(p, totalPages));
+    setPage(clamped);
+  }
+
+  function pageWindow(totalPages, current, max = 5) {
+    let start = Math.max(1, current - Math.floor(max / 2));
+    let end = Math.min(totalPages, start + max - 1);
+    if (end - start + 1 < max) start = Math.max(1, end - max + 1);
+    const arr = [];
+    for (let i = start; i <= end; i++) arr.push(i);
+    return arr;
+  }
 
   function toggleSort(col) {
     if (sortBy === col) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -208,7 +239,7 @@ export default function SalesAdminPage() {
                 Reset filtera
               </button>
               <span className="muted results-count">
-                Rezultata: <strong>{filteredSorted.length}</strong>
+                Rezultata: <strong>{total}</strong>
               </span>
             </div>
           </div>
@@ -216,6 +247,34 @@ export default function SalesAdminPage() {
 
         {serverMsg && <div className="alert alert--ok">{serverMsg}</div>}
         {loading && <div className="alert">Učitavanje...</div>}
+
+        {/* Kontrole paginacije (top) */}
+        <div className="pagination">
+          <div className="page-size">
+            <label>Prikaži:</label>
+            <select value={perPage} onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1); }}>
+              {[5,10,20,50,100].map((n) => <option key={n} value={n}>{n}/str</option>)}
+            </select>
+          </div>
+          <div className="page-info">
+            <span>Prikaz {total === 0 ? 0 : startIdx + 1}–{endIdx} od {total}</span>
+          </div>
+          <div className="page-ctrls">
+            <button className="btn btn--ghost" onClick={() => goto(1)} disabled={currentPage === 1}>« Prva</button>
+            <button className="btn btn--ghost" onClick={() => goto(currentPage - 1)} disabled={currentPage === 1}>‹ Prethodna</button>
+            {pageWindow(totalPages, currentPage, 5).map((p) => (
+              <button
+                key={p}
+                className={`btn ${p === currentPage ? "btn--primary" : "btn--ghost"} page-btn`}
+                onClick={() => goto(p)}
+              >
+                {p}
+              </button>
+            ))}
+            <button className="btn btn--ghost" onClick={() => goto(currentPage + 1)} disabled={currentPage === totalPages}>Sledeća ›</button>
+            <button className="btn btn--ghost" onClick={() => goto(totalPages)} disabled={currentPage === totalPages}>Poslednja »</button>
+          </div>
+        </div>
 
         <div className="card">
           <div className="table-wrap">
@@ -276,12 +335,12 @@ export default function SalesAdminPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredSorted.length === 0 ? (
+                {pageItems.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="muted center">Nema podataka.</td>
                   </tr>
                 ) : (
-                  filteredSorted.map((it) => (
+                  pageItems.map((it) => (
                     <tr key={it.id}>
                       <td>{it.id}</td>
                       <td>{it.naziv}</td>
@@ -301,6 +360,34 @@ export default function SalesAdminPage() {
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+
+        {/* Kontrole paginacije (bottom - po želji možeš ostaviti samo gore) */}
+        <div className="pagination">
+          <div className="page-size">
+            <label>Prikaži:</label>
+            <select value={perPage} onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1); }}>
+              {[5,10,20,50,100].map((n) => <option key={n} value={n}>{n}/str</option>)}
+            </select>
+          </div>
+          <div className="page-info">
+            <span>Prikaz {total === 0 ? 0 : startIdx + 1}–{endIdx} od {total}</span>
+          </div>
+          <div className="page-ctrls">
+            <button className="btn btn--ghost" onClick={() => goto(1)} disabled={currentPage === 1}>« Prva</button>
+            <button className="btn btn--ghost" onClick={() => goto(currentPage - 1)} disabled={currentPage === 1}>‹ Prethodna</button>
+            {pageWindow(totalPages, currentPage, 5).map((p) => (
+              <button
+                key={p}
+                className={`btn ${p === currentPage ? "btn--primary" : "btn--ghost"} page-btn`}
+                onClick={() => goto(p)}
+              >
+                {p}
+              </button>
+            ))}
+            <button className="btn btn--ghost" onClick={() => goto(currentPage + 1)} disabled={currentPage === totalPages}>Sledeća ›</button>
+            <button className="btn btn--ghost" onClick={() => goto(totalPages)} disabled={currentPage === totalPages}>Poslednja »</button>
           </div>
         </div>
       </main>
