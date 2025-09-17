@@ -1,15 +1,20 @@
+// src/pages/LoginPage.jsx
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api/client";
 import Input from "../components/ui/Input";
 import FormCard from "../components/ui/FormCard";
 import Alert from "../components/ui/Alert";
 import PasswordInput from "../components/ui/PasswordInput";
 import Button from "../components/ui/Button";
+import { useAuth } from "../context/AuthContext";
 import "./auth.css";
- 
 
-export default function LoginPage({ onLogin, redirectTo = "/app" }) {
-  const [form, setForm] = useState({ email: "novi@gmail.com", password: "novinovi" });
+export default function LoginPage({ redirectTo = "/sale" }) {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
+  const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [serverMsg, setServerMsg] = useState("");
   const [loading, setLoading] = useState(false);
@@ -38,13 +43,10 @@ export default function LoginPage({ onLogin, redirectTo = "/app" }) {
         email: form.email,
         password: form.password,
       });
-
       const { user, token, message } = res.data || {};
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-      if (typeof onLogin === "function") onLogin({ user, token });
+      login({ user, token }); // snimi u context + localStorage
       setServerMsg(message || "Prijava je uspešna.");
-      window.location.assign(redirectTo);
+      navigate(redirectTo, { replace: true });
     } catch (err) {
       if (err?.response?.status === 422) {
         setErrors(err.response.data.errors || {});

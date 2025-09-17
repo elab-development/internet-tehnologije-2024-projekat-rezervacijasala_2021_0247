@@ -172,7 +172,7 @@ export default function SalesAdminPage() {
           </div>
 
           <div className="sales-actions">
-            <button className="btn btn--ghost" onClick={reload}>🔄 Osveži</button>
+            <button className="btn btn--ghost" onClick={reload}> Osveži</button>
             <button className="btn btn--primary" onClick={() => setEditing({})}>
               + Nova sala
             </button>
