@@ -6,6 +6,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import Navbar from "./components/Navbar";
 import SalesAdminPage from "./pages/SalesAdminPage";
+import Breadcrumbs from "./components/Breadcrumbs";
 
  
 
@@ -14,7 +15,7 @@ function App() {
     <BrowserRouter>
      
        <Navbar /> 
-
+        <Breadcrumbs></Breadcrumbs>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage redirectTo="/app" />} />
