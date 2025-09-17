@@ -1,0 +1,134 @@
+.sales{
+  padding: clamp(24px, 6vw, 48px) clamp(16px, 5vw, 48px) 72px;
+}
+
+.sales-head{
+  display:flex; align-items:flex-end; justify-content:space-between; gap:16px;
+  margin-bottom: 14px;
+}
+.sales-actions{
+  display:flex; gap:10px; align-items:center;
+}
+.search input{
+  padding: 10px 12px;
+  border:1px solid var(--border);
+  border-radius: 12px;
+  background:#fff;
+  outline:none;
+}
+.search input:focus{ box-shadow: var(--focus-ring); }
+
+.card{
+  background: var(--card);
+  backdrop-filter: blur(8px);
+  border:1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 0;
+  box-shadow: var(--shadow);
+}
+
+.table-wrap{ overflow:auto; }
+.tbl{
+  width:100%;
+  border-collapse: collapse;
+}
+.tbl th, .tbl td{
+  padding: 12px 14px;
+  border-bottom:1px solid var(--border);
+}
+.tbl thead th{
+  background: color-mix(in oklab, var(--sand) 25%, #fff);
+  text-align:left;
+  font-weight:700;
+}
+.right{ text-align:right; }
+.center{ text-align:center; }
+.actions .btn{ margin-left: 6px; }
+
+.btn--danger{
+  color:#8a1f1f;
+  background: #ffe9e9;
+  border:1px solid #f1b6b6;
+}
+.btn--danger:hover{ transform: translateY(-1px); }
+
+/* Modal */
+.modal{
+  position: fixed; inset:0; display:grid; place-items:center;
+  background: rgba(0,0,0,0.25);
+  padding: 16px;
+}
+.modal-card{
+  width: 100%;
+  max-width: 520px;
+  background: #ffffffea;
+  backdrop-filter: blur(8px);
+  border:1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+
+/* Forma (reuse auth stilova) */
+.sale-form .form-actions{
+  display:flex; justify-content:flex-end; gap:10px; margin-top: 12px;
+}
+
+.alert{
+  border-radius: 12px; padding: 10px 12px; margin: 10px 0;
+  border:1px solid var(--border); background: #ffffffbf;
+}
+.alert--ok{ border-color: color-mix(in oklab, var(--green) 40%, var(--border)); }
+.sales{ padding: clamp(24px, 6vw, 48px) clamp(16px, 5vw, 48px) 72px; }
+.sales-head{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom: 14px; }
+.sales-actions{ display:flex; gap:10px; align-items:center; }
+.search input{
+  padding: 10px 12px; border:1px solid var(--border); border-radius: 12px; background:#fff; outline:none;
+}
+.search input:focus{ box-shadow: var(--focus-ring); }
+
+.card{
+  background: var(--card); backdrop-filter: blur(8px);
+  border:1px solid var(--border); border-radius: var(--radius-xl); padding: 0; box-shadow: var(--shadow);
+}
+
+.table-wrap{ overflow:auto; }
+.tbl{ width:100%; border-collapse: collapse; }
+.tbl th, .tbl td{ padding: 12px 14px; border-bottom:1px solid var(--border); }
+.tbl thead th{ background: color-mix(in oklab, var(--sand) 25%, #fff); text-align:left; font-weight:700; }
+.right{ text-align:right; }
+.center{ text-align:center; }
+.actions .btn{ margin-left: 6px; }
+
+.btn--danger{ color:#8a1f1f; background:#ffe9e9; border:1px solid #f1b6b6; }
+.btn--danger:hover{ transform: translateY(-1px); }
+
+/* Badge za status */
+.badge{
+  display:inline-block; padding: 4px 8px; border-radius: 999px; font-size: 12px; border:1px solid var(--border);
+  background:#fff; color: var(--muted);
+}
+.badge--ok{
+  background: color-mix(in oklab, var(--sage) 45%, #fff);
+  border-color: color-mix(in oklab, var(--sage) 50%, var(--border));
+}
+.badge--muted{
+  background: color-mix(in oklab, var(--sand) 40%, #fff);
+  border-color: color-mix(in oklab, var(--sand) 50%, var(--border));
+}
+
+/* Modal */
+.modal{ position: fixed; inset:0; display:grid; place-items:center; background: rgba(0,0,0,0.25); padding: 16px; }
+.modal-card{
+  width: 100%; max-width: 560px; background: #ffffffea; backdrop-filter: blur(8px);
+  border:1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); padding: 18px;
+}
+
+/* Forma */
+.sale-form .form-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top: 12px; }
+.field-row{ display:flex; align-items:center; gap:10px; }
+.label-inline{ margin-bottom:0; }
+textarea{
+  width:100%; padding: 11px 12px; border-radius: 12px; border:1px solid var(--border); background:#fff; outline:none;
+}
+textarea:focus{ box-shadow: var(--focus-ring); }
