@@ -13,6 +13,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Breadcrumbs from "./components/Breadcrumbs";
 import SaleCatalog from "./pages/SaleCatalog";
 import FloorPlan from "./pages/FloorPlan";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
 
 function App() {
   return (
@@ -32,6 +33,14 @@ function App() {
             element={
               <ProtectedRoute requireAdminOrManager>
                 <SalesAdminPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminDashboardPage />
               </ProtectedRoute>
             }
           />
