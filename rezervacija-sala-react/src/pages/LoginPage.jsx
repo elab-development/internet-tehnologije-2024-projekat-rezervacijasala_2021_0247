@@ -14,7 +14,7 @@ export default function LoginPage({ redirectTo = "/sale" }) {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ email: "beer.bonnie@example.net", password: "password" });
   const [errors, setErrors] = useState({});
   const [serverMsg, setServerMsg] = useState("");
   const [loading, setLoading] = useState(false);

@@ -34,7 +34,9 @@ export default function Navbar() {
               Sale (Admin)
             </NavLink>
           )}
-
+          <NavLink className="btn btn--ghost" to="/katalog">
+              Sale (Admin)
+            </NavLink>
           {!isAuthenticated ? (
             <>
               <NavLink className="btn btn--ghost" to="/login">Prijava</NavLink>

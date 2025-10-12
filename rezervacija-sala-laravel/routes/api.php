@@ -26,8 +26,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::get('/rezervacije/paginacija', [RezervacijaController::class, 'paginatedAndFiltered']);
-
-
+ Route::get('/rezervacije', [RezervacijaController::class, 'index']);
+   Route::resource('sale', SalaController::class);
 Route::middleware(['auth:sanctum', 'role:korisnik,menadzer'])->group(function () {
     Route::get('/rezervacije/export/csv', [RezervacijaController::class, 'exportToCsv']);
     Route::get('/rezervacije/{id}', [RezervacijaController::class, 'show']);
@@ -44,10 +44,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/preporuke/{id}', [PreporukaController::class, 'destroy']);
     Route::get('/preporuke', [PreporukaController::class, 'index']);
     Route::post('/preporuke', [PreporukaController::class, 'store']);
+    
 });
 
 Route::middleware(['auth:sanctum', 'role:administrator,menadzer'])->group(function () {
-    Route::resource('sale', SalaController::class);
+ 
     Route::post('/sale/upload/{id}', [SalaController::class, 'uploadFile']);
 });
 

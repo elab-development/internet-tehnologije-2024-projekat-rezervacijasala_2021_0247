@@ -11,6 +11,7 @@ import SalesAdminPage from "./pages/SalesAdminPage";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Breadcrumbs from "./components/Breadcrumbs";
+import SaleCatalog from "./pages/SaleCatalog";
 
 function App() {
   return (
@@ -23,7 +24,7 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage redirectTo="/sale" />} />
           <Route path="/registracija" element={<RegisterPage redirectTo="/sale" />} />
-
+          <Route path="/katalog" element={<SaleCatalog/>} />
           <Route
             path="/sale"
             element={
