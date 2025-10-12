@@ -10,11 +10,29 @@ const SORTABLE = {
   tip: "tip",
   kapacitet: "kapacitet",
   status: "status",
+  // NOVO: sprat je koristan za sortiranje/pregled
+  floor: "floor",
 };
 
 export default function SalesAdminPage() {
   const { items, setItems, loading, serverMsg, setServerMsg, reload } = useSalesData();
   const [editing, setEditing] = useState(null); // null=create, object=edit, false=closed
+
+  // -------- NOVO: podrazumevane vrednosti za novu salu --------
+  const blank = {
+    naziv: "",
+    tip: "",
+    kapacitet: 1,
+    opis: "",
+    status: true,
+    cena: "",
+    // layout polja
+    floor: 0,
+    layout_x: 0,
+    layout_y: 0,
+    layout_w: 1,
+    layout_h: 1,
+  };
 
   // Filters & search
   const [queryRaw, setQueryRaw] = useState("");
@@ -33,19 +51,45 @@ export default function SalesAdminPage() {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10); // 5,10,20,50...
 
+  // ------ Helpers: blaga sanitizacija (bez menjanja forme) ------
+  function normalizePayload(payload) {
+    const n = { ...payload };
+
+    // osiguraj numeriku i minimale
+    n.kapacitet = Math.max(1, Number(n.kapacitet ?? 1));
+    n.status = Boolean(n.status);
+
+    n.floor    = Math.max(0, Number(n.floor ?? 0));
+    n.layout_x = Math.max(0, Number(n.layout_x ?? 0));
+    n.layout_y = Math.max(0, Number(n.layout_y ?? 0));
+    n.layout_w = Math.max(1, Number(n.layout_w ?? 1));
+    n.layout_h = Math.max(1, Number(n.layout_h ?? 1));
+
+    if (n.cena !== undefined && n.cena !== null && n.cena !== "") {
+      n.cena = Number(n.cena);
+    } else {
+      delete n.cena;
+    }
+    return n;
+  }
+
   // Create/Update/Delete
   async function handleCreate(payload) {
-    const res = await api.post("/sale", payload);
+    const body = normalizePayload({ ...blank, ...payload }); // popuni propuštena polja defaultima
+    const res = await api.post("/sale", body);
     const created = res.data?.data || res.data;
     setItems((prev) => [created, ...prev]);
     setServerMsg("Sala je uspešno dodata.");
   }
+
   async function handleUpdate(id, payload) {
-    const res = await api.put(`/sale/${id}`, payload);
+    const body = normalizePayload(payload);
+    const res = await api.put(`/sale/${id}`, body);
     const updated = res.data?.data || res.data;
     setItems((prev) => prev.map((it) => (it.id === id ? updated : it)));
     setServerMsg("Izmene su sačuvane.");
   }
+
   async function handleDelete(id) {
     if (!window.confirm("Da li sigurno želiš da obrišeš ovu salu?")) return;
     await api.delete(`/sale/${id}`);
@@ -64,7 +108,6 @@ export default function SalesAdminPage() {
   const filteredSorted = useMemo(() => {
     let list = Array.isArray(items) ? [...items] : [];
 
-    // Pretraga
     if (query) {
       list = list.filter((x) => {
         const hay = [
@@ -73,29 +116,28 @@ export default function SalesAdminPage() {
           x?.opis ?? "",
           String(x?.kapacitet ?? ""),
           x?.status ? "aktivna" : "neaktivna",
+          // NOVO: pretraga po spratu
+          `sprat ${x?.floor ?? ""}`,
         ].join(" ").toLowerCase();
         return hay.includes(query);
       });
     }
 
-    // Status
     if (status !== "all") {
       const flag = status === "active";
       list = list.filter((x) => Boolean(x?.status) === flag);
     }
 
-    // Tip
     if (tip !== "all") {
       list = list.filter((x) => String(x?.tip ?? "") === tip);
     }
 
-    // Kapacitet
     const min = capMin !== "" ? Number(capMin) : null;
     const max = capMax !== "" ? Number(capMax) : null;
     if (min !== null) list = list.filter((x) => Number(x?.kapacitet ?? 0) >= min);
     if (max !== null) list = list.filter((x) => Number(x?.kapacitet ?? 0) <= max);
 
-    // Sort
+    // Sort (dodali smo mogućnost po floor-u ako je izabran)
     list.sort((a, b) => {
       const dir = sortDir === "asc" ? 1 : -1;
       const A = a?.[sortBy];
@@ -118,7 +160,7 @@ export default function SalesAdminPage() {
     setPage(1);
   }, [queryRaw, status, tip, capMin, capMax, sortBy, sortDir, items]);
 
-  // Paginacija – izračunaj stranice i isečak
+  // Paginacija
   const total = filteredSorted.length;
   const totalPages = Math.max(1, Math.ceil(total / perPage));
   const currentPage = Math.min(page, totalPages);
@@ -168,12 +210,12 @@ export default function SalesAdminPage() {
           <div>
             <p className="eyebrow">Administracija</p>
             <h1>Sale — CRUD</h1>
-            <p className="muted">Dodaj, izmeni ili obriši salu (naziv, tip, kapacitet, opis, status).</p>
+            <p className="muted">Dodaj, izmeni ili obriši salu (naziv, tip, kapacitet, opis, status, <strong>sprat i koordinate</strong>).</p>
           </div>
 
           <div className="sales-actions">
             <button className="btn btn--ghost" onClick={reload}> Osveži</button>
-            <button className="btn btn--primary" onClick={() => setEditing({})}>
+            <button className="btn btn--primary" onClick={() => setEditing({ ...blank })}>
               + Nova sala
             </button>
           </div>
@@ -187,7 +229,7 @@ export default function SalesAdminPage() {
               <input
                 value={queryRaw}
                 onChange={(e) => setQueryRaw(e.target.value)}
-                placeholder="Naziv, tip, opis, status, kapacitet…"
+                placeholder="Naziv, tip, opis, status, kapacitet, sprat…"
                 aria-label="Pretraga"
               />
             </div>
@@ -321,6 +363,17 @@ export default function SalesAdminPage() {
                   >
                     Kapacitet
                   </th>
+                  {/* NOVO: prikaz sprata, minimalna izmena UI-a */}
+                  <th
+                    className={`sortable ${sortBy === "floor" ? `sorted ${sortDir}` : ""}`}
+                    onClick={() => toggleSort("floor")}
+                    aria-sort={sortBy === "floor" ? sortDir : "none"}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === "Enter" && toggleSort("floor")}
+                  >
+                    Sprat
+                  </th>
                   <th
                     className={`sortable ${sortBy === "status" ? `sorted ${sortDir}` : ""}`}
                     onClick={() => toggleSort("status")}
@@ -337,7 +390,7 @@ export default function SalesAdminPage() {
               <tbody>
                 {pageItems.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="muted center">Nema podataka.</td>
+                    <td colSpan={7} className="muted center">Nema podataka.</td>
                   </tr>
                 ) : (
                   pageItems.map((it) => (
@@ -346,6 +399,7 @@ export default function SalesAdminPage() {
                       <td>{it.naziv}</td>
                       <td>{it.tip}</td>
                       <td className="right">{it.kapacitet}</td>
+                      <td>{it.floor ?? 0}</td>
                       <td>
                         <span className={`badge ${it.status ? "badge--ok" : "badge--muted"}`}>
                           {it.status ? "Aktivna" : "Neaktivna"}
@@ -363,7 +417,7 @@ export default function SalesAdminPage() {
           </div>
         </div>
 
-        {/* Kontrole paginacije (bottom - po želji možeš ostaviti samo gore) */}
+        {/* Kontrole paginacije (bottom) */}
         <div className="pagination">
           <div className="page-size">
             <label>Prikaži:</label>
@@ -397,7 +451,8 @@ export default function SalesAdminPage() {
         <div className="modal" role="dialog" aria-modal="true">
           <div className="modal-card">
             <SaleForm
-              initial={editing && editing.id ? editing : null}
+              // NOVO: za "novu" salu šaljemo blank sa floor/layout_* da forma ima polja i default
+              initial={editing && editing.id ? editing : blank}
               onCancel={() => setEditing(false)}
               onSubmit={async (payload) => {
                 try {
@@ -407,7 +462,8 @@ export default function SalesAdminPage() {
                     await handleCreate(payload);
                   }
                   setEditing(false);
-                } catch {
+                } catch (e) {
+                  console.error(e);
                   alert("Greška pri čuvanju. Proveri prava i backend validaciju.");
                 }
               }}

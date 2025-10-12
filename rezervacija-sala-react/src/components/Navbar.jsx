@@ -37,6 +37,9 @@ export default function Navbar() {
           <NavLink className="btn btn--ghost" to="/katalog">
               Katalog
             </NavLink>
+           <NavLink className="btn btn--ghost" to="/floor-plan">
+              Raspored sala
+            </NavLink>
           {!isAuthenticated ? (
             <>
               <NavLink className="btn btn--ghost" to="/login">Prijava</NavLink>

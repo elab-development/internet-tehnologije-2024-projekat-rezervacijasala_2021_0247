@@ -211,3 +211,166 @@ th.sortable.sorted.desc::after{
 
 .page-ctrls{ display:flex; gap:8px; align-items:center; }
 .page-btn { min-width:40px; padding:8px 12px; }
+.modal .modal-card form { display: grid; gap: 12px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+label { font-size: 0.9rem; color: #374151; display: block; margin-bottom: 4px; }
+input[type="date"], input[type="time"], input[type="text"], select {
+  width: 100%; padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 8px;
+  background: #fff; outline: none;
+}
+input:focus, select:focus { border-color: #60a5fa; box-shadow: 0 0 0 3px rgba(96,165,250,.2); }
+.fieldset { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; margin: 10px 0 16px; }
+.fieldset > legend { padding: 0 6px; font-weight: 600; color: #374151; }
+.field-row-3 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (max-width: 720px) {
+  .field-row-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* ========== SaleForm (kreiranje/izmena sale) ========== */
+
+.sale-form {
+  display: grid;
+  gap: 14px;
+  max-width: 720px;           /* prijatna širina u modalu */
+}
+
+/* zaglavlje forme */
+.sale-form .auth-head {
+  margin-bottom: 4px;
+}
+.sale-form .auth-head .eyebrow {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+
+/* polja */
+.sale-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sale-form label {
+  font-size: 14px;
+  color: #374151;
+  font-weight: 600;
+}
+
+.sale-form input[type="text"],
+.sale-form input[type="number"],
+.sale-form input[type="date"],
+.sale-form input[type="time"],
+.sale-form select,
+.sale-form textarea {
+  width: 100%;
+  border: 1px solid #d9d9e3;
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font: inherit;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+.sale-form textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+/* fokus i greške */
+.sale-form input:focus,
+.sale-form select:focus,
+.sale-form textarea:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 4px rgba(99,102,241,.12);
+}
+.sale-form .invalid {
+  border-color: #e5484d !important;
+  box-shadow: 0 0 0 4px rgba(229,72,77,.12) !important;
+}
+.sale-form .error {
+  color: #e5484d;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+/* fieldset za raspored */
+.sale-form .fieldset {
+  margin-top: 4px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fafafa;
+}
+.sale-form .fieldset > legend {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111827;
+  padding: 0 6px;
+}
+
+/* red sa checkbox-om */
+.sale-form .field-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sale-form .label-inline {
+  font-weight: 600;
+}
+
+/* 4 mala brojevna polja (X, Y, Š, V) */
+.sale-form .field-row-3 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 8px;
+}
+.sale-form .field-row-3 .field input[type="number"] {
+  text-align: center;
+}
+
+/* responzivno slaganje tih polja */
+@media (max-width: 780px) {
+  .sale-form .field-row-3 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 420px) {
+  .sale-form .field-row-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* dugmad */
+.sale-form .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 6px;
+}
+
+/* (opciono) doteraj modal da lepo nosi širu formu */
+.modal-card {
+  width: min(94vw, 760px);
+  max-height: 90vh;
+  overflow: auto;
+  border-radius: 16px;
+}
+
+/* (opciono) ukloni strelice na number inputu na WebKitu */
+.sale-form input[type=number]::-webkit-outer-spin-button,
+.sale-form input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.sale-form input[type=number] {
+  -moz-appearance: textfield;
+}

@@ -2,25 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Http\Resources\SalaResource;
 use App\Models\Sala;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class SalaController extends Controller
 {
     public function index()
     {
-        $cacheKey = 'sale_all';
-    
-        $cacheDuration = 60; 
-    
-        $sale = cache()->remember($cacheKey, $cacheDuration, function () {
-            return Sala::all();
-        });
-    
-        return response()->json($sale, 200);
+        $sale = cache()->remember('sale_all', 60, fn () => Sala::query()->get());
+        return response()->json(SalaResource::collection($sale), 200);
     }
 
     public function show($id)
@@ -31,19 +22,38 @@ class SalaController extends Controller
 
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'naziv' => 'required|string|max:255',
-            'tip' => 'required|string|max:255',
-            'kapacitet' => 'required|integer|min:1',
-            'opis' => 'nullable|string',
-            'status' => 'required|boolean',
+        // VALIDACIJA
+        $validated = $request->validate([
+            'naziv'      => 'required|string|max:255',
+            'tip'        => 'required|string|max:255',
+            'kapacitet'  => 'required|integer|min:1',
+            'opis'       => 'nullable|string',
+            'status'     => 'required|boolean',
+
+            // NOVO – obavezni sprat i koordinate/veličina
+            'floor'      => 'required|integer|min:0',
+            'layout_x'   => 'required|integer|min:0',
+            'layout_y'   => 'required|integer|min:0',
+            'layout_w'   => 'required|integer|min:1',
+            'layout_h'   => 'required|integer|min:1',
+
+            // opciono
+            'cena'       => 'nullable|numeric|min:0',
+            'file_path'  => 'nullable|string|max:1024',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        // SANITIZACIJA (in-place, bez helpera)
+        $validated['kapacitet'] = (int) max(1, (int) $validated['kapacitet']);
+        $validated['floor']     = (int) max(0, (int) $validated['floor']);
+        $validated['layout_x']  = (int) max(0, (int) $validated['layout_x']);
+        $validated['layout_y']  = (int) max(0, (int) $validated['layout_y']);
+        $validated['layout_w']  = (int) max(1, (int) $validated['layout_w']);
+        $validated['layout_h']  = (int) max(1, (int) $validated['layout_h']);
+        if (array_key_exists('cena', $validated)) {
+            $validated['cena'] = (float) $validated['cena'];
         }
 
-        $sala = Sala::create($request->all());
+        $sala = Sala::create($validated);
 
         cache()->forget('sale_all');
 
@@ -52,33 +62,50 @@ class SalaController extends Controller
 
     public function update(Request $request, $id)
     {
-        cache()->forget('sale_all');
-
         $sala = Sala::findOrFail($id);
 
-        $validator = Validator::make($request->all(), [
-            'naziv' => 'required|string|max:255',
-            'tip' => 'required|string|max:255',
-            'kapacitet' => 'required|integer|min:1',
-            'opis' => 'nullable|string',
-            'status' => 'required|boolean',
+        // VALIDACIJA (ista pravila kao za store)
+        $validated = $request->validate([
+            'naziv'      => 'required|string|max:255',
+            'tip'        => 'required|string|max:255',
+            'kapacitet'  => 'required|integer|min:1',
+            'opis'       => 'nullable|string',
+            'status'     => 'required|boolean',
+
+            'floor'      => 'required|integer|min:0',
+            'layout_x'   => 'required|integer|min:0',
+            'layout_y'   => 'required|integer|min:0',
+            'layout_w'   => 'required|integer|min:1',
+            'layout_h'   => 'required|integer|min:1',
+
+            'cena'       => 'nullable|numeric|min:0',
+            'file_path'  => 'nullable|string|max:1024',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        // SANITIZACIJA
+        $validated['kapacitet'] = (int) max(1, (int) $validated['kapacitet']);
+        $validated['floor']     = (int) max(0, (int) $validated['floor']);
+        $validated['layout_x']  = (int) max(0, (int) $validated['layout_x']);
+        $validated['layout_y']  = (int) max(0, (int) $validated['layout_y']);
+        $validated['layout_w']  = (int) max(1, (int) $validated['layout_w']);
+        $validated['layout_h']  = (int) max(1, (int) $validated['layout_h']);
+        if (array_key_exists('cena', $validated)) {
+            $validated['cena'] = (float) $validated['cena'];
         }
 
-        $sala->update($request->all());
+        $sala->update($validated);
+
+        cache()->forget('sale_all');
 
         return response()->json(new SalaResource($sala), 200);
     }
 
     public function destroy($id)
     {
-        cache()->forget('sale_all');
-
         $sala = Sala::findOrFail($id);
         $sala->delete();
+
+        cache()->forget('sale_all');
 
         return response()->json(['message' => 'Sala je uspešno obrisana.'], 200);
     }
@@ -87,18 +114,19 @@ class SalaController extends Controller
     {
         $sala = Sala::findOrFail($id);
 
-        $validated = $request->validate([
-            'file' => 'required|file|mimes:jpg,png,pdf,doc,docx,zip|max:5120', 
+        $request->validate([
+            'file' => 'required|file|mimes:jpg,png,pdf,doc,docx,zip|max:5120',
         ]);
 
         $path = $request->file('file')->store('sala_files', 'public');
-
         $sala->update(['file_path' => $path]);
 
+        cache()->forget('sale_all');
+
         return response()->json([
-            'message' => 'Fajl je uspešno otpremljen i povezan sa salom!',
+            'message'   => 'Fajl je uspešno otpremljen i povezan sa salom!',
             'file_path' => asset('storage/' . $path),
-            'sala' => $sala,
+            'sala'      => new SalaResource($sala->fresh()),
         ], 200);
     }
 }
