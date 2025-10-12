@@ -35,7 +35,7 @@ export default function Navbar() {
             </NavLink>
           )}
           <NavLink className="btn btn--ghost" to="/katalog">
-              Sale (Admin)
+              Katalog
             </NavLink>
           {!isAuthenticated ? (
             <>
