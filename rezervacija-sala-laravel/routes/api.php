@@ -65,6 +65,9 @@ Route::get('/sale/search', [SalaController::class, 'search']);
 // Ako ti treba javno, pomeri rutu ispod iz auth grupe.
 // Paginacija je korisna u administraciji, držimo je u auth grupi.
 Route::middleware(['auth:sanctum', 'role:administrator,menadzer,korisnik'])->group(function () {
+    
+    Route::get('/rezervacije/paginacija', [RezervacijaController::class, 'paginatedAndFiltered']);
+    Route::get('/rezervacije/export/csv', [RezervacijaController::class, 'exportToCsv']);
     // CRUD + eksport
     Route::get('/rezervacije', [RezervacijaController::class, 'index']);
     Route::get('/rezervacije/{id}', [RezervacijaController::class, 'show']);
@@ -72,8 +75,6 @@ Route::middleware(['auth:sanctum', 'role:administrator,menadzer,korisnik'])->gro
     Route::put('/rezervacije/{id}', [RezervacijaController::class, 'update']);
     Route::delete('/rezervacije/{id}', [RezervacijaController::class, 'destroy']);
 
-    Route::get('/rezervacije/paginacija', [RezervacijaController::class, 'paginatedAndFiltered']);
-    Route::get('/rezervacije/export/csv', [RezervacijaController::class, 'exportToCsv']);
 });
 
 

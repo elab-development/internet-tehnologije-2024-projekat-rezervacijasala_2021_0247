@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from "react";
+import React, { useMemo } from "react";
 import {
   DndContext,
   useDraggable,
@@ -6,8 +6,6 @@ import {
   useSensor,
   PointerSensor,
   TouchSensor,
-  DragEndEvent,
-  DragMoveEvent,
 } from "@dnd-kit/core";
 import { restrictToParentElement } from "@dnd-kit/modifiers";
 import "./floor-map.css";
@@ -22,21 +20,27 @@ function num(...vals) {
 }
 function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
 
-/* Draggable tile */
-function RoomTile({ r, state, x, y, w, h, cellSize, editable }) {
+/* Draggable + clickable tile */
+function RoomTile({ r, state, x, y, w, h, cellSize, editable, canOpen, onOpen }) {
   const id = String(r.id);
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id,
     disabled: !editable,
   });
 
-  // dok vučemo, koristimo transform iz dnd-kita (slobodan pomeraj u obe ose)
   const style = {
     left: x * cellSize,
     top:  y * cellSize,
     width:  w * cellSize,
     height: h * cellSize,
     transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+  };
+
+  const handleClick = (e) => {
+    // Ako je edit mode ili je bilo draga — ignoriši.
+    if (editable || isDragging) return;
+    if (!canOpen) return; // neaktivna ili zauzeta
+    onOpen?.();
   };
 
   return (
@@ -46,7 +50,12 @@ function RoomTile({ r, state, x, y, w, h, cellSize, editable }) {
       {...listeners}
       className={`room ${state} ${editable ? "draggable" : ""} ${isDragging ? "dragging" : ""}`}
       style={style}
-      title={editable ? "Prevuci da promeniš poziciju" : undefined}
+      onClick={handleClick}
+      title={
+        editable
+          ? "Prevuci da promeniš poziciju"
+          : canOpen ? "Klikni za rezervaciju" : "Nije dostupna"
+      }
       aria-label={`${r.naziv||"Sala"}, kapacitet ${r.kapacitet||"-"}, ${state}`}
     >
       <div className="room-name">{r.naziv || r.name || "Sala"}</div>
@@ -98,8 +107,7 @@ export default function FloorMap({
       {byFloor.map(([floor, rooms])=>{
         const {cols, rows} = bounds(rooms);
 
-        // Drop: snap na grid (X i Y), pa pozovi onDrop
-        function handleDragEnd(event /** @type {DragEndEvent} */) {
+        function handleDragEnd(event) {
           if (!editable) return;
           const { active, delta } = event;
           const id = active?.id;
@@ -112,7 +120,6 @@ export default function FloorMap({
           const w = Math.max(1, num(r.layout_w, r.layoutW, r.w, r.width) ?? 1);
           const h = Math.max(1, num(r.layout_h, r.layoutH, r.h, r.height) ?? 1);
 
-          // delta.x i delta.y su u pikselima → pretvorimo u ćelije i zaokružimo
           const nx = clamp(x + Math.round((delta?.x || 0) / cellSize), 0, cols - w);
           const ny = clamp(y + Math.round((delta?.y || 0) / cellSize), 0, rows - h);
 
@@ -132,11 +139,7 @@ export default function FloorMap({
               </div>
             </div>
 
-            <DndContext
-              sensors={sensors}
-              onDragEnd={handleDragEnd}
-              modifiers={[restrictToParentElement]} /* zadržava u platnu, ali dozvoljava X i Y */
-            >
+            <DndContext sensors={sensors} onDragEnd={handleDragEnd} modifiers={[restrictToParentElement]}>
               <div
                 className="floor-canvas"
                 style={{
@@ -147,7 +150,7 @@ export default function FloorMap({
                 role="group"
                 aria-label={`Mapa sprata ${floor}`}
               >
-                {/* grid lines */}
+                {/* grid */}
                 {[...Array(rows)].map((_,y)=>
                   <div key={`r${y}`} className="grid-row" style={{ top: y*cellSize }} />
                 )}
@@ -164,10 +167,12 @@ export default function FloorMap({
                   const active = r.status === true || r.status === 1 || String(r.status).toLowerCase().includes("aktiv");
                   const hasTerm = Boolean(date && from && to);
                   const free = hasTerm ? isFree(r, date, from, to) : null;
+
                   let state = "inactive";
                   if (active) state = free===null ? "unknown" : (free ? "free" : "busy");
 
-                  // važno: NEMA spoljnog wrapper-a oko RoomTile (taj wrapper ume da “poravna” visinu i kvari pomeranje po Y)
+                  const canOpen = !editable && active && free !== false;
+
                   return (
                     <RoomTile
                       key={r.id ?? `${floor}-${i}`}
@@ -176,6 +181,8 @@ export default function FloorMap({
                       x={x} y={y} w={w} h={h}
                       cellSize={cellSize}
                       editable={editable}
+                      canOpen={canOpen}
+                      onOpen={() => onReserve?.(r)}
                     />
                   );
                 })}

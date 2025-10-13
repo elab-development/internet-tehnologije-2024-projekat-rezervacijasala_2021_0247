@@ -16,7 +16,7 @@ class RezervacijaController extends Controller
         $rezervacije = Rezervacija::all();
         return response()->json(RezervacijaResource::collection($rezervacije), 200);
     }
-
+ 
     public function show($id)
     {
         $rezervacija = Rezervacija::findOrFail($id);

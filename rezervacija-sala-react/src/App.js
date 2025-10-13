@@ -14,6 +14,7 @@ import Breadcrumbs from "./components/Breadcrumbs";
 import SaleCatalog from "./pages/SaleCatalog";
 import FloorPlan from "./pages/FloorPlan";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
+import AdminReservations from "./pages/AdminReservations";
 
 function App() {
   return (
@@ -44,7 +45,14 @@ function App() {
               </ProtectedRoute>
             }
           />
-
+          <Route
+            path="/admin/rezervacije"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminReservations />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/app" element={<LandingPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
