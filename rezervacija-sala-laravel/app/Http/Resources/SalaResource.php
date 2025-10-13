@@ -14,16 +14,25 @@ class SalaResource extends JsonResource
      */
     public function toArray($request)
     {
-        return [
-            'id' => $this->id,
-            'naziv' => $this->naziv,
-            'tip' => $this->tip,
-            'kapacitet' => $this->kapacitet,
-            'opis' => $this->opis,
-            'status' => $this->status,
+      return [
+            'id'         => $this->id,
+            'naziv'      => $this->naziv,
+            'tip'        => $this->tip,
+            'kapacitet'  => $this->kapacitet,
+            'opis'       => $this->opis,
+            'status'     => $this->status,
+            'cena'       => $this->cena,
+
+            // NOVO – za vizuelni raspored
+            'floor'     => $this->floor,      // ili 'sprat' ako tako zoveš kolonu
+            'layout_x'  => $this->layout_x,
+            'layout_y'  => $this->layout_y,
+            'layout_w'  => $this->layout_w,
+            'layout_h'  => $this->layout_h,
+
+            // meta
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'cena' => $this->cena
         ];
     }
 }

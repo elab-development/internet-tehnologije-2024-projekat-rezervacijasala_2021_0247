@@ -374,3 +374,43 @@ input:focus, select:focus { border-color: #60a5fa; box-shadow: 0 0 0 3px rgba(96
 .sale-form input[type=number] {
   -moz-appearance: textfield;
 }
+.room.draggable { outline: 1px dashed transparent; }
+.room.draggable:active { cursor: grabbing; outline-color: #9ca3af; }/* platno mora biti relativno */
+.floor-canvas {
+  position: relative;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;        /* ok ako želiš da klipuje unutra */
+  touch-action: none;      /* dozvoli naš drag umesto scroll/pan */
+}
+
+/* mreža */
+.grid-row, .grid-col {
+  position: absolute;
+  pointer-events: none;
+  opacity: .12;
+}
+.grid-row { left: 0; right: 0; height: 1px; border-top: 1px solid #000; }
+.grid-col { top: 0; bottom: 0; width: 1px;  border-left: 1px solid #000; }
+
+/* sobe */
+.room {
+  position: absolute;              /* BITNO */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f9fafb;
+  padding: 6px;
+  user-select: none;               /* da ne selektuje tekst pri dragu */
+  touch-action: none;              /* da ne “vuče” stranicu na mob. */
+}
+.room.draggable { cursor: grab; outline: 1px dashed transparent; }
+.room.draggable:active { cursor: grabbing; outline-color: #9ca3af; }
+
+/* boje stanja */
+.room.free     { background: #ecfdf5; border-color: #10b981; }
+.room.busy     { background: #fef2f2; border-color: #ef4444; }
+.room.inactive { background: #f3f4f6; color: #9ca3af; }
+.room.unknown  { background: #fff7ed; border-color: #f59e0b; }

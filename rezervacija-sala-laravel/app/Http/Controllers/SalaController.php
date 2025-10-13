@@ -129,4 +129,25 @@ class SalaController extends Controller
             'sala'      => new SalaResource($sala->fresh()),
         ], 200);
     }
+
+    public function updateLayout(Request $request, Sala $sala)
+    {
+        $data = $request->validate([
+            'floor'     => 'sometimes|integer|min:0',
+            'layout_x'  => 'sometimes|integer|min:0',
+            'layout_y'  => 'sometimes|integer|min:0',
+            'layout_w'  => 'sometimes|integer|min:1',
+            'layout_h'  => 'sometimes|integer|min:1',
+        ]);
+
+        // clamp opcionalno (ako želiš da ograničiš max)
+        foreach (['layout_x','layout_y','layout_w','layout_h','floor'] as $k) {
+            if (array_key_exists($k, $data)) $data[$k] = (int) $data[$k];
+        }
+
+        $sala->update($data);
+        cache()->forget('sale_all');
+
+        return response()->json(new \App\Http\Resources\SalaResource($sala->fresh()), 200);
+    }
 }

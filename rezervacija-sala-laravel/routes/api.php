@@ -140,4 +140,9 @@ Route::middleware(['auth:sanctum', 'role:administrator'])->group(function () {
 
     // Upravljanje korisnicima (CRUD)
     Route::apiResource('users', UserController::class);
+
+    Route::patch('/sale/{sala}/layout', [SalaController::class, 'updateLayout']);
+        
+
+
 });

@@ -2,9 +2,9 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import api from "../api/client";
 import FloorMap from "../components/FloorMap";
 import ReservationForm from "../components/ReservationForm";
-import "./sale.css"; // možeš i floor-map.css u isti fajl da spojiš
+import "./sale.css";
 
-// pomoćne
+/* helpers */
 function toMin(t) { const [h,m]=String(t||"").split(":"); return (+h)*60+(+m||0); }
 function overlaps(aFrom,aTo,bFrom,bTo){ return Math.max(aFrom,bFrom) < Math.min(aTo,bTo); }
 
@@ -21,11 +21,13 @@ export default function FloorPlan() {
   const [to, setTo] = useState("10:00");
   const [cellSize, setCellSize] = useState(32);
 
+  // Edit mode (drag&drop layout)
+  const [editMode, setEditMode] = useState(false);
+
   const [openRes, setOpenRes] = useState(null); // { sala, date, from, to }
 
   const load = useCallback(async () => {
     setLoading(true); setMsg("");
-    // prvo sale (mora da uspe)
     try {
       const sRes = await api.get("/sale");
       setSale(sRes.data?.data || sRes.data || []);
@@ -33,17 +35,12 @@ export default function FloorPlan() {
       setSale([]);
       setMsg("Ne mogu da učitam sale.");
     }
-    // zatim rezervacije (tolerisi 403)
     try {
       const rRes = await api.get("/rezervacije");
       setRez(rRes.data?.data || rRes.data || []);
     } catch (e) {
-      if (e?.response?.status === 403) {
-        setRez([]);
-        // po želji: setMsg(m => m || "Nema dozvolu za pregled rezervacija.");
-      } else {
-        setMsg(m => m || "Ne mogu da učitam rezervacije.");
-      }
+      if (e?.response?.status === 403) setRez([]);
+      else setMsg(m => m || "Ne mogu da učitam rezervacije.");
     } finally {
       setLoading(false);
     }
@@ -53,7 +50,10 @@ export default function FloorPlan() {
   // sprat opcije
   const floorOptions = useMemo(() => {
     const set = new Set();
-    (sale||[]).forEach(s => set.add(Number(s.floor ?? 0)));
+    (sale||[]).forEach(s => {
+      const f = s.floor ?? s.sprat;
+      if (f !== null && f !== undefined) set.add(Number(f));
+    });
     const arr = Array.from(set).sort((a,b)=>a-b);
     return ["all", ...arr];
   }, [sale]);
@@ -70,8 +70,18 @@ export default function FloorPlan() {
   const shown = useMemo(() => {
     if (floor === "all") return sale;
     const f = Number(floor);
-    return (sale||[]).filter(s => Number(s.floor ?? 0) === f);
+    return (sale||[]).filter(s => Number(s.floor ?? s.sprat ?? 0) === f);
   }, [sale, floor]);
+
+  // snimi layout (PATCH /sale/{id}/layout)
+  const saveLayout = useCallback(async (id, layout) => {
+    setSale(prev => prev.map(s => s.id === id ? { ...s, ...layout } : s)); // optimistic
+    try {
+      await api.patch(`/sale/${id}/layout`, layout);
+    } catch {
+      await load(); // fallback
+    }
+  }, [load]);
 
   return (
     <main className="sales" role="main">
@@ -79,9 +89,17 @@ export default function FloorPlan() {
         <div>
           <p className="eyebrow">Vizuelni raspored</p>
           <h1>Mapa sprata — sale u objektu</h1>
-          <p className="muted">Klikom na sobu započni rezervaciju. Boje označavaju dostupnost.</p>
+          <p className="muted">Klikom na sobu započni rezervaciju. U edit modu prevuci sobu po mreži.</p>
         </div>
-        <div className="sales-actions">
+        <div className="sales-actions" style={{display:"flex",gap:12,alignItems:"center"}}>
+          <label style={{display:"flex",gap:8,alignItems:"center",fontSize:14}}>
+            <input
+              type="checkbox"
+              checked={editMode}
+              onChange={(e)=>setEditMode(e.target.checked)}
+            />
+            Uredi raspored (drag & drop)
+          </label>
           <button className="btn btn--ghost" onClick={load}>Osveži</button>
         </div>
       </div>
@@ -136,7 +154,9 @@ export default function FloorPlan() {
         from={from}
         to={to}
         cellSize={cellSize}
-        onReserve={(sala) => setOpenRes({ sala, date, from, to, tip_dogadjaja: "" })}
+        editable={editMode}
+        onDrop={(salaId, layout) => saveLayout(salaId, layout)}
+        onReserve={(sala) => !editMode && setOpenRes({ sala, date, from, to, tip_dogadjaja: "" })}
       />
 
       {/* MODAL: Rezervacija */}
