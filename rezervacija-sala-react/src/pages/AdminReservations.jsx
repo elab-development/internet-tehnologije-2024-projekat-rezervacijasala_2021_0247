@@ -128,11 +128,43 @@ const load = useCallback(async (page = pages.page, per_page = pages.per_page) =>
     }
   };
 
-  const exportCsv = () => {
-    const url = "/rezervacije/export"; // ili /rezervacije/export-csv zavisno od rute
-    // Pošto je stream, samo otvori u novom tabu
-    window.open(url, "_blank");
-  };
+    const exportCsv = async () => {
+    
+    const query = {
+        tip_dogadjaja: q || undefined,
+        sala_id: fSala !== "all" ? fSala : undefined,
+        status: fStatus !== "all" ? fStatus : undefined,
+        datum: fDate || undefined,
+    };
+    const url = "/rezervacije/export/csv?" + toQuery(query);
+
+    try {
+        const res = await api.get(url, { responseType: "blob" });
+
+        // napravi Blob i smisleno ime fajla iz header-a (ako ga backend šalje)
+        const blob = new Blob([res.data], { type: "text/csv;charset=utf-8;" });
+        let filename = "rezervacije.csv";
+        const cd = res.headers["content-disposition"];
+        if (cd) {
+        const m = cd.match(/filename\*?=(?:UTF-8'')?["']?([^"';]+)["']?/i);
+        if (m && m[1]) filename = decodeURIComponent(m[1]);
+        }
+
+        // triggeruj download
+        const link = document.createElement("a");
+        const objUrl = window.URL.createObjectURL(blob);
+        link.href = objUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(objUrl);
+    } catch (e) {
+        console.error(e);
+        alert("Izvoz nije uspeo.");
+    }
+    };
+
 
   const toggleOne = (id) => {
     setSelected(s => {
