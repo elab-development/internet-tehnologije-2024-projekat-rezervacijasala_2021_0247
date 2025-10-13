@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import api from "../api/client";
 import FloorMap from "../components/FloorMap";
 import ReservationForm from "../components/ReservationForm";
+import { useAuth } from "../context/AuthContext";
 import "./sale.css";
 
 /* helpers */
@@ -9,6 +10,9 @@ function toMin(t) { const [h,m]=String(t||"").split(":"); return (+h)*60+(+m||0)
 function overlaps(aFrom,aTo,bFrom,bTo){ return Math.max(aFrom,bFrom) < Math.min(aTo,bTo); }
 
 export default function FloorPlan() {
+  const { isAdmin } = useAuth();              
+  const canEdit = Boolean(isAdmin);
+
   const [sale, setSale] = useState([]);
   const [rez, setRez] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -21,7 +25,7 @@ export default function FloorPlan() {
   const [to, setTo] = useState("10:00");
   const [cellSize, setCellSize] = useState(32);
 
-  // Edit mode (drag&drop layout)
+  // Edit mode (drag&drop layout) – dozvoljen samo adminu
   const [editMode, setEditMode] = useState(false);
 
   const [openRes, setOpenRes] = useState(null); // { sala, date, from, to }
@@ -46,6 +50,11 @@ export default function FloorPlan() {
     }
   }, []);
   useEffect(()=>{ load(); },[load]);
+
+  // Ako korisnik nije admin, osiguraj da je editMode isključen
+  useEffect(() => {
+    if (!canEdit && editMode) setEditMode(false);
+  }, [canEdit, editMode]);
 
   // sprat opcije
   const floorOptions = useMemo(() => {
@@ -73,15 +82,21 @@ export default function FloorPlan() {
     return (sale||[]).filter(s => Number(s.floor ?? s.sprat ?? 0) === f);
   }, [sale, floor]);
 
-  // snimi layout (PATCH /sale/{id}/layout)
+  // snimi layout (PATCH /sale/{id}/layout) — samo admin
   const saveLayout = useCallback(async (id, layout) => {
+    if (!canEdit) return; // hard guard
     setSale(prev => prev.map(s => s.id === id ? { ...s, ...layout } : s)); // optimistic
     try {
       await api.patch(`/sale/${id}/layout`, layout);
-    } catch {
-      await load(); // fallback
+    } catch (e) {
+      // vrati stanje ako backend odbije (npr. 403)
+      await load();
+      const err = e?.response?.data?.message || "Greška pri čuvanju rasporeda.";
+      setMsg(err);
     }
-  }, [load]);
+  }, [canEdit, load]);
+
+  const editable = canEdit && editMode; // jedino admin + uključen prekidač
 
   return (
     <main className="sales" role="main">
@@ -89,17 +104,21 @@ export default function FloorPlan() {
         <div>
           <p className="eyebrow">Vizuelni raspored</p>
           <h1>Mapa sprata — sale u objektu</h1>
-          <p className="muted">Klikom na sobu započni rezervaciju. U edit modu prevuci sobu po mreži.</p>
+          <p className="muted">
+            Klikom na sobu započni rezervaciju. {canEdit ? "U edit modu prevuci sobu po mreži." : "Samo admin može da uređuje raspored."}
+          </p>
         </div>
         <div className="sales-actions" style={{display:"flex",gap:12,alignItems:"center"}}>
-          <label style={{display:"flex",gap:8,alignItems:"center",fontSize:14}}>
-            <input
-              type="checkbox"
-              checked={editMode}
-              onChange={(e)=>setEditMode(e.target.checked)}
-            />
-            Uredi raspored (drag & drop)
-          </label>
+          {canEdit && (
+            <label style={{display:"flex",gap:8,alignItems:"center",fontSize:14}}>
+              <input
+                type="checkbox"
+                checked={editMode}
+                onChange={(e)=>setEditMode(e.target.checked)}
+              />
+              Uredi raspored (drag & drop)
+            </label>
+          )}
           <button className="btn btn--ghost" onClick={load}>Osveži</button>
         </div>
       </div>
@@ -154,9 +173,9 @@ export default function FloorPlan() {
         from={from}
         to={to}
         cellSize={cellSize}
-        editable={editMode}
-        onDrop={(salaId, layout) => saveLayout(salaId, layout)}
-        onReserve={(sala) => !editMode && setOpenRes({ sala, date, from, to, tip_dogadjaja: "" })}
+        editable={editable}                            // ⬅️ samo admin u edit modu
+        onDrop={(salaId, layout) => canEdit && saveLayout(salaId, layout)}
+        onReserve={(sala) => !editable && setOpenRes({ sala, date, from, to, tip_dogadjaja: "" })}
       />
 
       {/* MODAL: Rezervacija */}
@@ -174,10 +193,7 @@ export default function FloorPlan() {
               }}
               salaName={openRes.sala.naziv}
               onCancel={()=>setOpenRes(null)}
-              onSuccess={()=>{
-                setOpenRes(null);
-                load();
-              }}
+              onSuccess={()=>{ setOpenRes(null); load(); }}
             />
           </div>
         </div>

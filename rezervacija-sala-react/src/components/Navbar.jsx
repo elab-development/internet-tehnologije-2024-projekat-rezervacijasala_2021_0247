@@ -1,22 +1,20 @@
-
 import React, { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./navbar.css";
 
 export default function Navbar() {
-  const { user, role, isAuthenticated, isAdminOrManager, logout } = useAuth();
+  const { user, role, isAuthenticated, isAdmin, isAdminOrManager, logout } = useAuth();
   const [loadingOut, setLoadingOut] = useState(false);
 
   async function handleLogout() {
     if (loadingOut) return;
     setLoadingOut(true);
-    try {
-      await logout();
-    } finally {
-      setLoadingOut(false);
-    }
+    try { await logout(); } finally { setLoadingOut(false); }
   }
+
+  const displayName = user?.name || user?.data?.name || "Korisnik";
+  const initials = (displayName || "U").slice(0, 1).toUpperCase();
 
   return (
     <header className="lp-header" role="banner">
@@ -26,20 +24,23 @@ export default function Navbar() {
         </Link>
 
         <div className="nav-actions">
+          {/* Uvek vidljivo */}
           <NavLink className="btn btn--ghost" to="/">Početna</NavLink>
+          <NavLink className="btn btn--ghost" to="/katalog">Katalog</NavLink>
+          <NavLink className="btn btn--ghost" to="/floor-plan">Raspored sala</NavLink>
 
-          {/* Admin/menadžer vidi Admin sekciju */}
+          {/* Samo Admin/Manager */}
           {isAdminOrManager && (
-            <NavLink className="btn btn--ghost" to="/sale">
-              Sale (Admin)
-            </NavLink>
+            <>
+            <NavLink className="btn btn--ghost" to="/sale">Sale (Admin)</NavLink>
+             <NavLink className="btn btn--ghost" to="/admin">Admin</NavLink>
+              <NavLink className="btn btn--ghost" to="/admin/rezervacije">Rezervacije (Admin)</NavLink>
+              <NavLink className="btn btn--ghost" to="/admin/preporuke">Preporuke (Admin)</NavLink>
+              </>
           )}
-          <NavLink className="btn btn--ghost" to="/katalog">
-              Katalog
-            </NavLink>
-           <NavLink className="btn btn--ghost" to="/floor-plan">
-              Raspored sala
-            </NavLink>
+
+       
+
           {!isAuthenticated ? (
             <>
               <NavLink className="btn btn--ghost" to="/login">Prijava</NavLink>
@@ -48,13 +49,9 @@ export default function Navbar() {
           ) : (
             <>
               <div className="nav-user">
-                <div className="avatar" aria-hidden="true">
-                  {(user?.name || user?.data?.name || "U")
-                    .slice(0, 1)
-                    .toUpperCase()}
-                </div>
+                <div className="avatar" aria-hidden="true">{initials}</div>
                 <div className="user-meta">
-                  <span className="user-name">{user?.name || user?.data?.name || "Korisnik"}</span>
+                  <span className="user-name">{displayName}</span>
                   <span className="user-role">{role || "korisnik"}</span>
                 </div>
               </div>

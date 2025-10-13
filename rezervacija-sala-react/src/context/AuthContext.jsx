@@ -1,9 +1,13 @@
- 
 import React, { createContext, useContext, useMemo, useState } from "react";
 import api from "../api/client";
 import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext(null);
+
+ 
+function normalizeRole(raw) {
+  return (raw || "").toString().trim().toLowerCase();
+}
 
 export function AuthProvider({ children }) {
   const navigate = useNavigate();
@@ -15,11 +19,14 @@ export function AuthProvider({ children }) {
     catch { return null; }
   });
 
-  const role =
-    (user?.role || user?.data?.role || "").toString().toLowerCase();
-console.log(role)
-  const isAdminOrManager = role === "administrator" || role === "menadzer";
+  // Izvuci rolu iz user objekta (podržava i user.data.role)
+  const role = normalizeRole(user?.role || user?.data?.role);
+
+  // Pomoćni booleans
   const isAuthenticated = Boolean(token);
+  const isAdmin   = role === "administrator" || role === "admin";
+  const isManager = role === "menadzer" || role === "manager";
+  const isAdminOrManager = isAdmin || isManager;
 
   function login({ user: u, token: t }) {
     setUser(u);
@@ -30,9 +37,9 @@ console.log(role)
 
   async function logout() {
     try {
-      await api.post("/odjava"); // Laravel: auth:sanctum protected
+      await api.post("/odjava"); // Laravel Sanctum ruta
     } catch {
-      // Ignorišemo grešku — svejedno čistimo keš
+      // ignorišemo grešku — ionako čistimo lokalni state
     } finally {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
@@ -42,13 +49,30 @@ console.log(role)
     }
   }
 
-  const value = useMemo(
-    () => ({
-      user, token, role, isAuthenticated, isAdminOrManager,
-      login, logout
-    }),
-    [user, token, role, isAuthenticated, isAdminOrManager]
-  );
+  // Helperi za granularne provere
+  const hasRole = (r) => normalizeRole(r) === role;
+  const hasAnyRole = (...roles) => roles.map(normalizeRole).includes(role);
+
+  const value = useMemo(() => ({
+    // raw podaci
+    user,
+    token,
+    role,
+    isAuthenticated,
+
+    // zgodni booleans
+    isAdmin,
+    isManager,
+    isAdminOrManager,
+
+    // helper funkcije
+    hasRole,
+    hasAnyRole,
+
+    // akcije
+    login,
+    logout
+  }), [user, token, role, isAuthenticated, isAdmin, isManager]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -36,8 +36,8 @@ Route::post('/prijava', [KorisnickaSesijaController::class, 'login']);
 Route::middleware('auth:sanctum')->post('/odjava', [KorisnickaSesijaController::class, 'logout']);
 
 // Zaboravljena lozinka
-Route::post('/password/email', [PasswordController::class, 'posaljiLink']);
-Route::post('/password/reset', [PasswordController::class, 'restartujLozinku']);
+Route::post('/lozinka/posalji-link', [PasswordController::class, 'posaljiLink']);
+Route::post('/lozinka/reset',        [PasswordController::class, 'restartujLozinku']);
 
 
 // ---------------------------------------------------------------------

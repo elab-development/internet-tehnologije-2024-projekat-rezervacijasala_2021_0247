@@ -1,5 +1,3 @@
-
-
 import "./App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
@@ -16,20 +14,24 @@ import FloorPlan from "./pages/FloorPlan";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import AdminReservations from "./pages/AdminReservations";
 import AdminPreporuke from "./pages/AdminPreporuke";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 function App() {
   return (
     <BrowserRouter>
-      {/* AuthProvider MORA biti unutar Router-a zbog useNavigate */}
       <AuthProvider>
         <Navbar />
-        <Breadcrumbs></Breadcrumbs>
+        <Breadcrumbs />
         <Routes>
+          {/* Public */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage redirectTo="/sale" />} />
           <Route path="/registracija" element={<RegisterPage redirectTo="/sale" />} />
-          <Route path="/katalog" element={<SaleCatalog/>} />
+          <Route path="/katalog" element={<SaleCatalog />} />
           <Route path="/floor-plan" element={<FloorPlan />} />
+
+          {/* Admin/Manager */}
           <Route
             path="/sale"
             element={
@@ -38,6 +40,8 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* Admin-only */}
           <Route
             path="/admin"
             element={
@@ -54,7 +58,18 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/admin/preporuke" element={<AdminPreporuke />} />
+          <Route
+            path="/admin/preporuke"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminPreporuke />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="/lozinka/posalji" element={<ForgotPasswordPage />} />
+          <Route path="/lozinka/reset"  element={<ResetPasswordPage />} />
+          {/* Fallback */}
           <Route path="/app" element={<LandingPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

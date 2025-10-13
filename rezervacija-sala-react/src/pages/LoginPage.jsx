@@ -112,6 +112,9 @@ export default function LoginPage({ redirectTo = "/sale" }) {
           <p className="meta">
             Nemaš nalog? <a href="/registracija">Registruj se</a>
           </p>
+          <p className="meta" style={{marginTop: 6}}>
+            Zaboravljena lozinka? <a href="/lozinka/posalji">Pošalji link za reset</a>
+          </p>
         </FormCard>
       </main>
     </div>
