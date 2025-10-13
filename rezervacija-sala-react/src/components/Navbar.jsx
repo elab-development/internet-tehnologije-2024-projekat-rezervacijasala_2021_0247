@@ -44,7 +44,7 @@ export default function Navbar() {
           {!isAuthenticated ? (
             <>
               <NavLink className="btn btn--ghost" to="/login">Prijava</NavLink>
-              <NavLink className="btn btn--primary" to="/registracija">Registracija</NavLink>
+              <NavLink className="btn btn--ghost" to="/registracija">Registracija</NavLink>
             </>
           ) : (
             <>

@@ -284,7 +284,7 @@ export default function SaleCatalog() {
         <div className="card" style={{margin:"10px 0 14px", padding:"10px 12px"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
             <strong>Predlog za vas (po unetim preferencijama):</strong>
-            <button className="btn btn--primary" onClick={autoReserveTop}>
+            <button className="btn btn--ghost" onClick={autoReserveTop}>
               Rezerviši top predlog
             </button>
           </div>
@@ -356,7 +356,7 @@ export default function SaleCatalog() {
                   <td><span className="muted">—</span></td>
                   <td className="right">
                     <button
-                      className="btn btn--primary"
+                      className="btn btn--ghost"
                       onClick={()=>setOpenRes({sala:s, date: date || "", from, to, tip_dogadjaja: kind})}
                     >
                       Rezerviši

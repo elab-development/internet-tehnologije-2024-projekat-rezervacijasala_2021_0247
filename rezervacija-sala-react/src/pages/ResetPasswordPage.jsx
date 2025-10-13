@@ -118,7 +118,7 @@ export default function ResetPasswordPage({ redirectTo="/login" }) {
             error={errors.password_confirmation}
           />
 
-          <Button type="submit" variant="primary" fullWidth disabled={loading || tokenInvalid}>
+          <Button type="submit" variant="ghost" fullWidth disabled={loading || tokenInvalid}>
             {loading ? "Snimam..." : "Sačuvaj novu lozinku"}
           </Button>
 

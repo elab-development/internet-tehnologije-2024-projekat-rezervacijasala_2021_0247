@@ -3,7 +3,7 @@ import React from "react";
 export default function Button({
   children,
   type = "button",
-  variant = "primary", // 'primary' | 'ghost' | 'danger'
+  variant = "ghost", // 'primary' | 'ghost' | 'danger'
   fullWidth = false,
   className = "",
   ...props

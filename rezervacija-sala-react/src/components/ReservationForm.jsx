@@ -56,7 +56,7 @@ export default function ReservationForm({ initial=null, salaName="", onCancel, o
 
       <div className="form-actions">
         <button type="button" className="btn btn--ghost" onClick={onCancel} disabled={busy}>Otkaži</button>
-        <button className="btn btn--primary" disabled={busy}>Sačuvaj</button>
+        <button className="btn btn--ghost" disabled={busy}>Sačuvaj</button>
       </div>
     </form>
   );

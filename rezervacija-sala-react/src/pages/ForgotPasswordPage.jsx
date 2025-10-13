@@ -60,7 +60,7 @@ export default function ForgotPasswordPage() {
             error={error}
           />
 
-          <Button type="submit" variant="primary" fullWidth disabled={loading}>
+          <Button type="submit" variant="ghost" fullWidth disabled={loading}>
             {loading ? "Šaljem link..." : "Pošalji link"}
           </Button>
 

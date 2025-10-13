@@ -10,8 +10,7 @@ class Sala extends Model
     use HasFactory;
 
     protected $fillable = [
-        'naziv','tip','kapacitet','opis','status','file_path','cena',
-        // NOVO:
+        'naziv','tip','kapacitet','opis','status','file_path','cena', 
         'floor','layout_x','layout_y','layout_w','layout_h',
     ];
 
