@@ -1,0 +1,134 @@
+.admin-prep {
+  padding: 16px;
+}
+
+.admin-prep__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.admin-prep__actions .btn + .btn {
+  margin-left: 8px;
+}
+
+.admin-prep__filters {
+  margin-bottom: 12px;
+}
+
+.admin-prep .filters-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.admin-prep .filter-label {
+  display: block;
+  font-size: 12px;
+  color: #6b7280; /* muted */
+  margin-bottom: 4px;
+}
+
+.admin-prep input, .admin-prep select {
+  width: 100%;
+}
+
+/* Table specifics */
+.admin-prep__table th, .admin-prep__table td {
+  vertical-align: middle;
+}
+
+.admin-prep__table .sortable {
+  cursor: pointer;
+}
+.admin-prep__table .sorted.asc::after {
+  content: " ▲";
+  font-size: 10px;
+  color: #6b7280;
+}
+.admin-prep__table .sorted.desc::after {
+  content: " ▼";
+  font-size: 10px;
+  color: #6b7280;
+}
+
+/* widths for inline inputs */
+.w-120 { width: 120px; }
+.w-160 { width: 160px; }
+
+.btn--danger {
+  background: #ef4444;
+  color: #fff;
+}
+.btn--danger:hover {
+  background: #dc2626;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-size: 11px;
+  color: #6b7280;
+  margin: 0 0 6px;
+}
+
+.muted { color: #6b7280; }
+.center { text-align: center; }
+
+.table-wrap {
+  overflow: auto;
+  border-radius: 10px;
+}
+
+/* Fallback basic “card” look to match ostatak */
+.card {
+  background: #fff;
+  border: 1px solid #eef0f2;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 1px 2px rgba(16,24,40,.04);
+}
+
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+}
+.tbl thead th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+  color: #374151;
+  border-bottom: 1px solid #eef0f2;
+  padding: 10px;
+  background: #fafafa;
+}
+.tbl tbody td {
+  padding: 10px;
+  border-bottom: 1px solid #f2f4f7;
+}
+.tbl .right { text-align: right; }
+
+/* Reuse pagination styles if nema u globalnom CSS-u */
+.pagination {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-top: 12px;
+}
+.pagination .btn { margin-left: 6px; }
+.page-size select { min-width: 80px; }
+
+.field-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.alert {
+  background: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+}

@@ -15,6 +15,7 @@ import SaleCatalog from "./pages/SaleCatalog";
 import FloorPlan from "./pages/FloorPlan";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import AdminReservations from "./pages/AdminReservations";
+import AdminPreporuke from "./pages/AdminPreporuke";
 
 function App() {
   return (
@@ -53,6 +54,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/admin/preporuke" element={<AdminPreporuke />} />
           <Route path="/app" element={<LandingPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

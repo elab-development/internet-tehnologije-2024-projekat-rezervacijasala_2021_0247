@@ -11,29 +11,34 @@ export default function SaleCatalog() {
   const [sale, setSale]   = useState([]);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
- 
+
+  // UI state — filteri / preferencije
   const [query, setQuery]   = useState("");
-  const [tip, setTip]       = useState("all");       // preferirani tip prostorije
+  const [tip, setTip]       = useState("all");
   const [capMin, setCapMin] = useState("");
   const [capMax, setCapMax] = useState("");
-  const [date, setDate]     = useState("");          // YYYY-MM-DD (preferencija termina)
-  const [from, setFrom]     = useState("08:00");     // HH:mm (preferencija termina)
-  const [to, setTo]         = useState("10:00");     // HH:mm (preferencija termina)
-  const [kind, setKind]     = useState("sastanak");  // tip događaja (preferencija)
-  const [people, setPeople] = useState("");          // očekivan broj učesnika (preferencija)
+  const [date, setDate]     = useState("");
+  const [from, setFrom]     = useState("08:00");
+  const [to, setTo]         = useState("10:00");
+  const [kind, setKind]     = useState("sastanak");
+  const [people, setPeople] = useState("");
 
   // sort
-  const [sortBy, setSortBy]   = useState("naziv");   // naziv | kapacitet
-  const [sortDir, setSortDir] = useState("asc");     // asc | desc
+  const [sortBy, setSortBy]   = useState("naziv");
+  const [sortDir, setSortDir] = useState("asc");
 
-  // lokalna paginacija
-  const [page, setPage]     = useState(1);
+  // paginacija
+  const [page, setPage]       = useState(1);
   const [perPage, setPerPage] = useState(10);
 
   // modal rezervacije
   const [openRes, setOpenRes] = useState(null); // { sala, date, from, to, tip_dogadjaja }
 
-  // Poeni za preporuke — SVE NA OSNOVU PREFERENCIJA
+  // lokano stanje za snimanje preporuka
+  const [savingId, setSavingId] = useState(null);     // id sale koja se trenutno snima
+  const [savedIds, setSavedIds] = useState(new Set()); // set sala_id koje smo uspešno snimili
+
+  // Poeni za preporuke
   const WEIGHTS = {
     roomTypeMatch: 3,
     eventKindHint: 2,
@@ -60,7 +65,7 @@ export default function SaleCatalog() {
     [sale]
   );
 
-  /* ------------ napredna pretraga + filtracija (za tabelu) ------------ */
+  /* ------------ filtracija za tabelu ------------ */
   const filtered = useMemo(()=>{
     let list = Array.isArray(sale) ? [...sale] : [];
     const q = query.trim().toLowerCase();
@@ -112,12 +117,11 @@ export default function SaleCatalog() {
     setSortBy("naziv"); setSortDir("asc"); setPage(1);
   }
 
-  /* ------------ SISTEM PREPORUKE (po preferencijama + KAPACITET KAO TVRDA OGRADA) ------------ */
+  /* ------------ preporuke (po preferencijama + kapacitet kao ograda) ------------ */
   const scoredSuggestions = useMemo(()=>{
     const min = capMin!=="" ? Number(capMin) : null;
     const max = capMax!=="" ? Number(capMax) : null;
 
-    // 1) Tvrdo filtriramo bazen kandidata po kapacitetu (ako je zadat)
     const pool = (sale||[]).filter(s => {
       const cap = Number(s.kapacitet)||0;
       if (min!==null && cap < min) return false;
@@ -125,57 +129,61 @@ export default function SaleCatalog() {
       return true;
     });
 
-    // 2) Odredimo "ciljni" broj mesta za bodovanje blizine:
-    //    people (ako uneto) inače sredina [min,max] ili jedna od granica.
     const target = (() => {
       const p = Number(people||0);
       if (p > 0) return p;
       if (min!==null && max!==null) return (min + max)/2;
       if (min!==null) return min;
       if (max!==null) return max;
-      return 0; // nema cilja -> dobiće 0 poena iz tog kriterijuma
+      return 0;
     })();
 
     const hasTime = Boolean(date && from && to && toMin(to) > toMin(from));
 
     const rankList = pool.map(s => {
       let score = 0;
-
-      // Tip prostorije preferencija (meko)
       if (tip !== "all" && String(s.tip||"") === tip) score += WEIGHTS.roomTypeMatch;
-
-      // Heuristika za tip događaja
-      if (kind && String(s.tip||"").toLowerCase().includes(kind.toLowerCase())) {
-        score += WEIGHTS.eventKindHint;
-      }
-
-      // Blizina kapaciteta cilju
+      if (kind && String(s.tip||"").toLowerCase().includes(kind.toLowerCase())) score += WEIGHTS.eventKindHint;
       if (target > 0) {
         const delta = Math.abs((Number(s.kapacitet)||0) - target);
-        const proximity = Math.max(0, WEIGHTS.capacityProximity - delta / Math.max(target, 1));
-        score += proximity;
+        score += Math.max(0, WEIGHTS.capacityProximity - delta / Math.max(target, 1));
       }
-
-      // Aktivna sala
       if (s.status) score += WEIGHTS.activeRoom;
-
-      // Popunjene vremenske preferencije — mala prednost
       if (hasTime) score += WEIGHTS.timePrefGiven;
-
       return { sala: s, score };
     });
 
     rankList.sort((a,b)=> b.score - a.score);
-
-    // Ako se previše suzilo pa nema kandidata, fallback na sve sale (bez kap. ograde)
-    if (rankList.length === 0) {
-      const fallback = (sale||[]).map(s => ({ sala:s, score:0 }));
-      return fallback.slice(0,5);
-    }
-    return rankList.slice(0, 5);
+    return (rankList.length ? rankList : (sale||[]).map(s=>({sala:s,score:0}))).slice(0,5);
   }, [sale, tip, kind, people, capMin, capMax, date, from, to]);
 
-  /* ------------ auto rezerviši top predlog ------------ */
+  /* ------------ snimi preporuku u bazu (POST /preporuke) ------------ */
+  async function saveRecommendation(sala) {
+    // backend očekuje: sala_id, datum, vreme_od, vreme_do, tip_dogadjaja
+    if (!sala?.id) return;
+    try {
+      setSavingId(sala.id);
+      setMsg("");
+      const payload = {
+        sala_id: sala.id,
+        datum: date || new Date().toISOString().slice(0,10), // ako korisnik nije uneo datum, danas
+        vreme_od: from || "08:00",
+        vreme_do: to   || "09:00",
+        tip_dogadjaja: kind || "dogadjaj",
+      };
+      const res = await api.post("/preporuke", payload);
+      // obeleži snimljeno
+      setSavedIds(prev => new Set(prev).add(sala.id));
+      setMsg("Preporuka je sačuvana.");
+      return res?.data;
+    } catch (e) {
+      setMsg(e?.response?.data?.message || "Ne mogu da sačuvam preporuku.");
+    } finally {
+      setSavingId(null);
+    }
+  }
+
+  /* ------------ auto rezerviši top predlog (opciono) ------------ */
   function autoReserveTop() {
     if (scoredSuggestions.length === 0) return;
     const top = scoredSuggestions[0].sala;
@@ -205,7 +213,7 @@ export default function SaleCatalog() {
         </div>
       </div>
 
-      {/* FILTERI / PREFERENCIJE KORISNIKA */}
+      {/* FILTERI / PREFERENCIJE */}
       <section className="filters" aria-label="Filteri i preferencije">
         <div className="filters-grid">
           <div className="filter">
@@ -271,7 +279,7 @@ export default function SaleCatalog() {
       {msg && <div className="alert">{msg}</div>}
       {loading && <div className="alert">Učitavanje…</div>}
 
-      {/* PREPORUKE */}
+      {/* PREPORUKE + Sačuvaj u bazu */}
       {(scoredSuggestions.length>0) && (
         <div className="card" style={{margin:"10px 0 14px", padding:"10px 12px"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -295,6 +303,16 @@ export default function SaleCatalog() {
                     onClick={()=>setOpenRes({sala:s, date: date || "", from, to, tip_dogadjaja: kind})}
                   >
                     Rezerviši
+                  </button>
+                  <button
+                    className="btn"
+                    disabled={savingId===s.id || savedIds.has(s.id)}
+                    onClick={()=>saveRecommendation(s)}
+                    title="Sačuvaj ovu preporuku u bazi"
+                  >
+                    {savedIds.has(s.id)
+                      ? "Sačuvano ✓"
+                      : (savingId===s.id ? "Čuvam…" : "Sačuvaj preporuku")}
                   </button>
                 </div>
               </li>
@@ -342,6 +360,13 @@ export default function SaleCatalog() {
                       onClick={()=>setOpenRes({sala:s, date: date || "", from, to, tip_dogadjaja: kind})}
                     >
                       Rezerviši
+                    </button>
+                    <button
+                      className="btn btn--ghost"
+                      disabled={savingId===s.id || savedIds.has(s.id)}
+                      onClick={()=>saveRecommendation(s)}
+                    >
+                      {savedIds.has(s.id) ? "Sačuvano ✓" : (savingId===s.id ? "Čuvam…" : "Sačuvaj preporuku")}
                     </button>
                   </td>
                 </tr>

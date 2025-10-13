@@ -24,6 +24,8 @@ class PreporukaResource extends JsonResource
             'tip_dogadjaja' => $this->tip_dogadjaja,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'user_name'     => optional($this->user)->name,    
+            'sala_naziv'    => optional($this->sala)->naziv,
         ];
     }
 }
