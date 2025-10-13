@@ -87,7 +87,7 @@ export default function FloorPlan() {
     if (!canEdit) return; // hard guard
     setSale(prev => prev.map(s => s.id === id ? { ...s, ...layout } : s)); // optimistic
     try {
-      await api.patch(`/sale/${id}/layout`, layout);
+      await api.patch(`/sale/${id}/layout`, layout);   
     } catch (e) {
       // vrati stanje ako backend odbije (npr. 403)
       await load();

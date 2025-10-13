@@ -131,7 +131,7 @@ function UserModal({ open, initial, onClose, onSave }) {
           </div>
           <div className="form-actions">
             <button type="button" className="btn btn--ghost" onClick={onClose}>Otkaži</button>
-            <button type="submit" className="btn btn--primary">{initial ? "Sačuvaj" : "Kreiraj"}</button>
+            <button type="submit" className="btn btn--ghost">{initial ? "Sačuvaj" : "Kreiraj"}</button>
           </div>
         </form>
       </div>

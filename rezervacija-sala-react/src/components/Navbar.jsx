@@ -26,8 +26,7 @@ export default function Navbar() {
         <div className="nav-actions">
           {/* Uvek vidljivo */}
           <NavLink className="btn btn--ghost" to="/">Početna</NavLink>
-          <NavLink className="btn btn--ghost" to="/katalog">Katalog</NavLink>
-          <NavLink className="btn btn--ghost" to="/floor-plan">Raspored sala</NavLink>
+
 
           {/* Samo Admin/Manager */}
           {isAdminOrManager && (
@@ -48,6 +47,8 @@ export default function Navbar() {
             </>
           ) : (
             <>
+                      <NavLink className="btn btn--ghost" to="/katalog">Katalog</NavLink>
+               <NavLink className="btn btn--ghost" to="/floor-plan">Raspored sala</NavLink>
               <div className="nav-user">
                 <div className="avatar" aria-hidden="true">{initials}</div>
                 <div className="user-meta">

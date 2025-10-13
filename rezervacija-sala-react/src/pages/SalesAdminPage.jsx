@@ -215,7 +215,7 @@ export default function SalesAdminPage() {
 
           <div className="sales-actions">
             <button className="btn btn--ghost" onClick={reload}> Osveži</button>
-            <button className="btn btn--primary" onClick={() => setEditing({ ...blank })}>
+            <button className="btn btn--ghost" onClick={() => setEditing({ ...blank })}>
               + Nova sala
             </button>
           </div>
@@ -307,7 +307,7 @@ export default function SalesAdminPage() {
             {pageWindow(totalPages, currentPage, 5).map((p) => (
               <button
                 key={p}
-                className={`btn ${p === currentPage ? "btn--primary" : "btn--ghost"} page-btn`}
+                className={`btn ${p === currentPage ? "btn--ghost" : "btn--ghost"} page-btn`}
                 onClick={() => goto(p)}
               >
                 {p}
