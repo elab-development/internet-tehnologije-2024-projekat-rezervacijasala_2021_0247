@@ -409,8 +409,15 @@ input:focus, select:focus { border-color: #60a5fa; box-shadow: 0 0 0 3px rgba(96
 .room.draggable { cursor: grab; outline: 1px dashed transparent; }
 .room.draggable:active { cursor: grabbing; outline-color: #9ca3af; }
 
-/* boje stanja */
-.room.free     { background: #ecfdf5; border-color: #10b981; }
-.room.busy     { background: #fef2f2; border-color: #ef4444; }
-.room.inactive { background: #f3f4f6; color: #9ca3af; }
-.room.unknown  { background: #fff7ed; border-color: #f59e0b; }
+ .chip {
+  display:inline-block;
+  border:1px solid var(--border, #e5e7eb);
+  border-radius:999px;
+  padding:4px 10px;
+  margin-right:6px;
+  margin-top:4px;
+  background:#fff;
+  font-size:12px;
+  cursor:pointer;
+}
+.chip:hover { background:#f9fafb; }

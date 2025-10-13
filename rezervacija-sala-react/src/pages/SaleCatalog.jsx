@@ -2,85 +2,89 @@ import React, { useEffect, useMemo, useState, useCallback } from "react";
 import api from "../api/client";
 import ReservationForm from "../components/ReservationForm";
 import "./sale.css";
- 
-function toMin(t) { const [h,m]=String(t||"").split(":"); return (+h)*60+(+m||0); }
-function overlaps(aFrom,aTo,bFrom,bTo){ return Math.max(aFrom,bFrom) < Math.min(aTo,bTo); }
 
+/* ---------------- helpers ---------------- */
+function toMin(t) { const [h,m]=String(t||"").split(":"); return (+h)*60+(+m||0); }
+
+/* ---------------- component ---------------- */
 export default function SaleCatalog() {
-  const [sale, setSale] = useState([]);
-  const [rez, setRez]   = useState([]);
+  const [sale, setSale]   = useState([]);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
-
-  // UI state
-  const [query, setQuery] = useState("");
-  const [tip, setTip] = useState("all");
+ 
+  const [query, setQuery]   = useState("");
+  const [tip, setTip]       = useState("all");       // preferirani tip prostorije
   const [capMin, setCapMin] = useState("");
   const [capMax, setCapMax] = useState("");
-  const [date, setDate] = useState("");         // YYYY-MM-DD
-  const [from, setFrom] = useState("08:00");    // HH:mm
-  const [to, setTo]     = useState("10:00");    // HH:mm
-  const [kind, setKind] = useState("sastanak"); // tip događaja (za preporuku)
-  const [people, setPeople] = useState("");     // očekivan broj učesnika (za preporuku)
-  const [sortBy, setSortBy] = useState("naziv");// naziv | kapacitet
-  const [sortDir, setSortDir] = useState("asc");// asc|desc
+  const [date, setDate]     = useState("");          // YYYY-MM-DD (preferencija termina)
+  const [from, setFrom]     = useState("08:00");     // HH:mm (preferencija termina)
+  const [to, setTo]         = useState("10:00");     // HH:mm (preferencija termina)
+  const [kind, setKind]     = useState("sastanak");  // tip događaja (preferencija)
+  const [people, setPeople] = useState("");          // očekivan broj učesnika (preferencija)
 
-  const [page, setPage] = useState(1);
+  // sort
+  const [sortBy, setSortBy]   = useState("naziv");   // naziv | kapacitet
+  const [sortDir, setSortDir] = useState("asc");     // asc | desc
+
+  // lokalna paginacija
+  const [page, setPage]     = useState(1);
   const [perPage, setPerPage] = useState(10);
 
-  const [openRes, setOpenRes] = useState(null); // {sala}
-  
+  // modal rezervacije
+  const [openRes, setOpenRes] = useState(null); // { sala, date, from, to, tip_dogadjaja }
+
+  // Poeni za preporuke — SVE NA OSNOVU PREFERENCIJA
+  const WEIGHTS = {
+    roomTypeMatch: 3,
+    eventKindHint: 2,
+    capacityProximity: 5,
+    activeRoom: 0.5,
+    timePrefGiven: 0.5,
+  };
+
+  /* ------------ učitavanje podataka ------------ */
   const load = useCallback(async () => {
     setLoading(true); setMsg("");
     try{
-      const [sRes, rRes] = await Promise.all([
-        api.get("/sale"),
-        api.get("/rezervacije") // zahteva auth (korisnik/menadzer)
-      ]);
+      const sRes = await api.get("/sale");
       setSale(sRes.data?.data || sRes.data || []);
-      setRez(rRes.data?.data || rRes.data || []);
     }catch(e){
-      setMsg("Ne mogu da učitam sale/rezervacije. Proveri prijavu i prava.");
+      setMsg("Ne mogu da učitam sale. Proveri prijavu i prava.");
     }finally{ setLoading(false); }
   }, []);
   useEffect(()=>{ load(); },[load]);
 
-  // Dinamički tipovi
-  const tipOptions = useMemo(() => ["all", ...Array.from(new Set((sale||[]).map(s=>String(s.tip||"")).filter(Boolean)) )], [sale]);
+  /* ------------ dinamički tipovi ------------ */
+  const tipOptions = useMemo(
+    () => ["all", ...Array.from(new Set((sale||[]).map(s=>String(s.tip||"")).filter(Boolean)))],
+    [sale]
+  );
 
-  // Da li je sala slobodna u datom terminu
-  const isFree = useCallback((sala, datumISO, tFrom, tTo) => {
-    if(!datumISO) return true; // ako nema datuma, ne filtriramo po zauzeću
-    const F = toMin(tFrom), T = toMin(tTo);
-    const todayRez = rez.filter(r => String(r.sala_id) === String(sala.id) && String(r.datum) === String(datumISO));
-    return todayRez.every(r => !overlaps(F, T, toMin(r.vreme_od), toMin(r.vreme_do)));
-  }, [rez]);
-
-  // Napredna filtracija + pretraga + raspoloživost
+  /* ------------ napredna pretraga + filtracija (za tabelu) ------------ */
   const filtered = useMemo(()=>{
     let list = Array.isArray(sale) ? [...sale] : [];
     const q = query.trim().toLowerCase();
+
     if(q){
       list = list.filter(s=>{
-        const hay = [s.naziv, s.tip, s.opis, String(s.kapacitet), s.status ? "aktivna":"neaktivna"].join(" ").toLowerCase();
+        const hay = [
+          s.naziv, s.tip, s.opis, String(s.kapacitet),
+          s.status ? "aktivna" : "neaktivna"
+        ].join(" ").toLowerCase();
         return hay.includes(q);
       });
     }
+
     if(tip !== "all") list = list.filter(s => String(s.tip||"") === tip);
 
-    const min = capMin!==""? Number(capMin):null;
-    const max = capMax!==""? Number(capMax):null;
+    const min = capMin!=="" ? Number(capMin) : null;
+    const max = capMax!=="" ? Number(capMax) : null;
     if(min!==null) list = list.filter(s => Number(s.kapacitet||0) >= min);
     if(max!==null) list = list.filter(s => Number(s.kapacitet||0) <= max);
 
-    // Raspoloživost (ako je zadat datum i raspon vremena)
-    if(date && from && to){
-      list = list.filter(s => isFree(s, date, from, to));
-    }
-
     // Sort
     list.sort((a,b)=>{
-      const dir = sortDir==="asc"?1:-1;
+      const dir = sortDir==="asc" ? 1 : -1;
       const A = a[sortBy], B = b[sortBy];
       if(typeof A === "string" || typeof B === "string"){
         return String(A||"").localeCompare(String(B||""), "sr", {sensitivity:"base"}) * dir;
@@ -89,9 +93,9 @@ export default function SaleCatalog() {
     });
 
     return list;
-  },[sale, query, tip, capMin, capMax, date, from, to, sortBy, sortDir, isFree]);
+  },[sale, query, tip, capMin, capMax, sortBy, sortDir]);
 
-  // Paginacija
+  /* ------------ paginacija ------------ */
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / perPage));
   const cur = Math.min(page, totalPages);
@@ -108,21 +112,81 @@ export default function SaleCatalog() {
     setSortBy("naziv"); setSortDir("asc"); setPage(1);
   }
 
-  // Heuristička PREPORUKA: prvo slobodne, pa tip koji se poklapa, pa najbliži kapacitetu "people"
-  const suggestions = useMemo(()=>{
-    const need = Number(people||0) || 0;
-    const base = filtered.filter(s => (!date || isFree(s, date, from, to)));
-    const score = (s) => {
-      let sc = 0;
-      if(date && from && to && isFree(s, date, from, to)) sc += 5;
-      if(tip !== "all" && String(s.tip||"")===tip) sc += 2;
-      if(kind && String(s.tip||"").toLowerCase().includes(kind.toLowerCase())) sc += 1;
-      if(need>0) sc += Math.max(0, 3 - Math.abs((s.kapacitet||0)-need)/Math.max(need,1));
-      if(s.status) sc += 0.5;
-      return sc;
-    };
-    return [...base].sort((a,b)=> score(b)-score(a)).slice(0,3);
-  },[filtered, date, from, to, tip, kind, people, isFree]);
+  /* ------------ SISTEM PREPORUKE (po preferencijama + KAPACITET KAO TVRDA OGRADA) ------------ */
+  const scoredSuggestions = useMemo(()=>{
+    const min = capMin!=="" ? Number(capMin) : null;
+    const max = capMax!=="" ? Number(capMax) : null;
+
+    // 1) Tvrdo filtriramo bazen kandidata po kapacitetu (ako je zadat)
+    const pool = (sale||[]).filter(s => {
+      const cap = Number(s.kapacitet)||0;
+      if (min!==null && cap < min) return false;
+      if (max!==null && cap > max) return false;
+      return true;
+    });
+
+    // 2) Odredimo "ciljni" broj mesta za bodovanje blizine:
+    //    people (ako uneto) inače sredina [min,max] ili jedna od granica.
+    const target = (() => {
+      const p = Number(people||0);
+      if (p > 0) return p;
+      if (min!==null && max!==null) return (min + max)/2;
+      if (min!==null) return min;
+      if (max!==null) return max;
+      return 0; // nema cilja -> dobiće 0 poena iz tog kriterijuma
+    })();
+
+    const hasTime = Boolean(date && from && to && toMin(to) > toMin(from));
+
+    const rankList = pool.map(s => {
+      let score = 0;
+
+      // Tip prostorije preferencija (meko)
+      if (tip !== "all" && String(s.tip||"") === tip) score += WEIGHTS.roomTypeMatch;
+
+      // Heuristika za tip događaja
+      if (kind && String(s.tip||"").toLowerCase().includes(kind.toLowerCase())) {
+        score += WEIGHTS.eventKindHint;
+      }
+
+      // Blizina kapaciteta cilju
+      if (target > 0) {
+        const delta = Math.abs((Number(s.kapacitet)||0) - target);
+        const proximity = Math.max(0, WEIGHTS.capacityProximity - delta / Math.max(target, 1));
+        score += proximity;
+      }
+
+      // Aktivna sala
+      if (s.status) score += WEIGHTS.activeRoom;
+
+      // Popunjene vremenske preferencije — mala prednost
+      if (hasTime) score += WEIGHTS.timePrefGiven;
+
+      return { sala: s, score };
+    });
+
+    rankList.sort((a,b)=> b.score - a.score);
+
+    // Ako se previše suzilo pa nema kandidata, fallback na sve sale (bez kap. ograde)
+    if (rankList.length === 0) {
+      const fallback = (sale||[]).map(s => ({ sala:s, score:0 }));
+      return fallback.slice(0,5);
+    }
+    return rankList.slice(0, 5);
+  }, [sale, tip, kind, people, capMin, capMax, date, from, to]);
+
+  /* ------------ auto rezerviši top predlog ------------ */
+  function autoReserveTop() {
+    if (scoredSuggestions.length === 0) return;
+    const top = scoredSuggestions[0].sala;
+    setOpenRes({
+      sala: top,
+      date: date || "",
+      from,
+      to,
+      tip_dogadjaja: kind
+    });
+  }
 
   return (
     <main className="sales" role="main">
@@ -130,7 +194,10 @@ export default function SaleCatalog() {
         <div>
           <p className="eyebrow">Dostupne prostorije</p>
           <h1>Sale — pregled i rezervacija</h1>
-          <p className="muted">Napredna pretraga po tipu, kapacitetu i slobodnim terminima. Pametna preporuka na osnovu vaših potreba.</p>
+          <p className="muted">
+            Unesi svoje preferencije (tip prostorije, tip događaja, broj učesnika i termin).
+            Preporuke poštuju <strong>Kapacitet (od/do)</strong> kao ogradu i zatim rangiraju najbolje opcije.
+          </p>
         </div>
         <div className="sales-actions">
           <button className="btn btn--ghost" onClick={load}>Osveži</button>
@@ -138,8 +205,8 @@ export default function SaleCatalog() {
         </div>
       </div>
 
-      {/* FILTERI */}
-      <section className="filters" aria-label="Filteri i pretraga">
+      {/* FILTERI / PREFERENCIJE KORISNIKA */}
+      <section className="filters" aria-label="Filteri i preferencije">
         <div className="filters-grid">
           <div className="filter">
             <label className="filter-label">Pretraga</label>
@@ -147,7 +214,7 @@ export default function SaleCatalog() {
           </div>
 
           <div className="filter">
-            <label className="filter-label">Tip prostorije</label>
+            <label className="filter-label">Tip prostorije (preferencija)</label>
             <select value={tip} onChange={e=>setTip(e.target.value)}>
               {tipOptions.map(t => <option key={t} value={t}>{t==="all"?"Svi tipovi":t}</option>)}
             </select>
@@ -155,19 +222,19 @@ export default function SaleCatalog() {
 
           <div className="filter">
             <label className="filter-label">Kapacitet (od)</label>
-            <input type="number" min="1" value={capMin} onChange={e=>setCapMin(e.target.value)} placeholder="npr. 10" />
+            <input type="number" min="1" value={capMin} onChange={e=>setCapMin(e.target.value)} placeholder="npr. 50" />
           </div>
           <div className="filter">
             <label className="filter-label">Kapacitet (do)</label>
-            <input type="number" min="1" value={capMax} onChange={e=>setCapMax(e.target.value)} placeholder="npr. 100" />
+            <input type="number" min="1" value={capMax} onChange={e=>setCapMax(e.target.value)} placeholder="npr. 80" />
           </div>
 
           <div className="filter">
-            <label className="filter-label">Datum</label>
+            <label className="filter-label">Datum (preferencija)</label>
             <input type="date" value={date} onChange={e=>setDate(e.target.value)} />
           </div>
           <div className="filter">
-            <label className="filter-label">Vreme (od–do)</label>
+            <label className="filter-label">Vreme (od–do) (preferencija)</label>
             <div className="field-row">
               <input type="time" value={from} onChange={e=>setFrom(e.target.value)} />
               <span>–</span>
@@ -176,12 +243,12 @@ export default function SaleCatalog() {
           </div>
 
           <div className="filter">
-            <label className="filter-label">Tip događaja (preporuka)</label>
+            <label className="filter-label">Tip događaja (preferencija)</label>
             <input value={kind} onChange={e=>setKind(e.target.value)} placeholder="npr. sastanak, radionica…" />
           </div>
           <div className="filter">
-            <label className="filter-label">Broj učesnika (preporuka)</label>
-            <input type="number" min="1" value={people} onChange={e=>setPeople(e.target.value)} placeholder="npr. 25" />
+            <label className="filter-label">Broj učesnika (preferencija)</label>
+            <input type="number" min="1" value={people} onChange={e=>setPeople(e.target.value)} placeholder="npr. 60" />
           </div>
 
           <div className="filter">
@@ -205,14 +272,31 @@ export default function SaleCatalog() {
       {loading && <div className="alert">Učitavanje…</div>}
 
       {/* PREPORUKE */}
-      {(suggestions.length>0) && (
+      {(scoredSuggestions.length>0) && (
         <div className="card" style={{margin:"10px 0 14px", padding:"10px 12px"}}>
-          <strong>Predlog za vas:</strong>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <strong>Predlog za vas (po unetim preferencijama):</strong>
+            <button className="btn btn--primary" onClick={autoReserveTop}>
+              Rezerviši top predlog
+            </button>
+          </div>
+
           <ul style={{margin:"8px 0 0 18px"}}>
-            {suggestions.map(s=>(
-              <li key={s.id}>
-                {s.naziv} — {s.tip} · kap. {s.kapacitet}{" "}
-                <button className="btn btn--ghost" onClick={()=>setOpenRes({sala:s, date, from, to, tip_dogadjaja: kind})}>Rezerviši</button>
+            {scoredSuggestions.map(({ sala: s, score })=>(
+              <li key={s.id} style={{marginBottom:8}}>
+                <div style={{display:"flex", gap:8, alignItems:"center", flexWrap:"wrap"}}>
+                  <span>{s.naziv} — {s.tip} · kap. {s.kapacitet}</span>
+                  <span className="muted">poeni: {score.toFixed(2)}</span>
+                  {(date && from && to) && (
+                    <span className="muted"> · termin: {date} {from}–{to}</span>
+                  )}
+                  <button
+                    className="btn btn--ghost"
+                    onClick={()=>setOpenRes({sala:s, date: date || "", from, to, tip_dogadjaja: kind})}
+                  >
+                    Rezerviši
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
@@ -225,7 +309,12 @@ export default function SaleCatalog() {
           <table className="tbl">
             <thead>
               <tr>
-                <th className={`sortable ${sortBy==="naziv"?`sorted ${sortDir}`:""}`} onClick={()=>toggleSort("naziv")}>Naziv</th>
+                <th
+                  className={`sortable ${sortBy==="naziv" ? `sorted ${sortDir}` : ""}`}
+                  onClick={()=>toggleSort("naziv")}
+                >
+                  Naziv
+                </th>
                 <th>Tip</th>
                 <th className="right sortable" onClick={()=>toggleSort("kapacitet")}>Kapacitet</th>
                 <th>Status</th>
@@ -236,37 +325,27 @@ export default function SaleCatalog() {
             <tbody>
               {pageItems.length===0 ? (
                 <tr><td colSpan={6} className="center muted">Nema podataka.</td></tr>
-              ) : pageItems.map(s=> {
-                const free = (!date||!from||!to) ? null : isFree(s, date, from, to);
-                return (
-                  <tr key={s.id}>
-                    <td>{s.naziv}</td>
-                    <td>{s.tip}</td>
-                    <td className="right">{s.kapacitet}</td>
-                    <td>
-                      <span className={`badge ${s.status ? "badge--ok":"badge--muted"}`}>
-                        {s.status ? "Aktivna":"Neaktivna"}
-                      </span>
-                    </td>
-                    <td>
-                      {free===null ? <span className="muted">—</span> : (
-                        <span className={`badge ${free?"badge--ok":"badge--muted"}`}>
-                          {free?"Slobodna":"Zauzeta"}
-                        </span>
-                      )}
-                    </td>
-                    <td className="right">
-                      <button
-                        className="btn btn--primary"
-                        disabled={free===false || !s.status}
-                        onClick={()=>setOpenRes({sala:s, date, from, to, tip_dogadjaja: kind})}
-                      >
-                        Rezerviši
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
+              ) : pageItems.map(s=> (
+                <tr key={s.id}>
+                  <td>{s.naziv}</td>
+                  <td>{s.tip}</td>
+                  <td className="right">{s.kapacitet}</td>
+                  <td>
+                    <span className={`badge ${s.status ? "badge--ok":"badge--muted"}`}>
+                      {s.status ? "Aktivna":"Neaktivna"}
+                    </span>
+                  </td>
+                  <td><span className="muted">—</span></td>
+                  <td className="right">
+                    <button
+                      className="btn btn--primary"
+                      onClick={()=>setOpenRes({sala:s, date: date || "", from, to, tip_dogadjaja: kind})}
+                    >
+                      Rezerviši
+                    </button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
