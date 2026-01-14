@@ -1,0 +1,77 @@
+.admin { padding: 20px 16px 40px; }
+.admin-head { display:flex; align-items:end; justify-content:space-between; gap:16px; margin-bottom:18px; }
+.eyebrow { font-size:.8rem; text-transform:uppercase; letter-spacing:.08em; color:#6b7280; margin:0; }
+.muted { color:#6b7280; }
+.tabs { display:flex; gap:8px; }
+.tab { padding:8px 12px; border-radius:10px; border:1px solid #e5e7eb; background:#fff; }
+.tab.active { background:#111827; color:#fff; border-color:#111827; }
+
+.kpis { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:12px; margin-bottom:16px; }
+.kpi { background:#fff; border:1px solid #e5e7eb; border-radius:14px; padding:14px; }
+.kpi-title { font-size:.85rem; color:#6b7280; }
+.kpi-value { font-size:1.6rem; font-weight:700; margin-top:6px; }
+
+.cards-grid { display:grid; grid-template-columns: repeat(12, minmax(0,1fr)); gap:12px; }
+.card { grid-column: span 12 / span 12; background:#fff; border:1px solid #e5e7eb; border-radius:14px; padding:14px; }
+@media (min-width: 960px){
+  .card:nth-child(1){ grid-column: span 8; }
+  .card:nth-child(2){ grid-column: span 4; }
+  .card:nth-child(3){ grid-column: span 6; }
+  .card:nth-child(4){ grid-column: span 6; }
+  .card:nth-child(5){ grid-column: span 4; }
+}
+
+.card-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+
+.chart { width:100%; height:auto; }
+.axis { stroke:#9ca3af; stroke-width:1; }
+.grid { stroke:#e5e7eb; stroke-width:1; }
+.series { stroke:#111827; }
+.dot { fill:#111827; }
+.bar { fill:#111827; opacity:.9; }
+
+.donut { max-width: 320px; }
+.donut-bg { stroke:#e5e7eb; }
+.donut-center { font-size: 18px; fill:#111827; font-weight:700; }
+.donut-seg { stroke-linecap: butt; }
+.donut .seg-1 { stroke:#111827; } /* 6 nijansi */
+.donut .seg-2 { stroke:#4b5563; }
+.donut .seg-3 { stroke:#6b7280; }
+.donut .seg-4 { stroke:#9ca3af; }
+.donut .seg-5 { stroke:#d1d5db; }
+.donut .seg-6 { stroke:#e5e7eb; }
+
+.donut-wrap { display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+.legend-list, .legend-col { display:flex; gap:10px; flex-wrap:wrap; font-size:.9rem; margin-top:10px; }
+.legend-item .dot { display:inline-block; width:8px; height:8px; background:#111827; border-radius:50%; margin-right:6px; }
+.swatch { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:6px; background:#111827; }
+.swatch.seg-2{background:#4b5563;} .swatch.seg-3{background:#6b7280;}
+.swatch.seg-4{background:#9ca3af;} .swatch.seg-5{background:#d1d5db;} .swatch.seg-6{background:#e5e7eb;}
+
+.util { display:grid; gap:8px; }
+.util-row { display:flex; align-items:center; justify-content:space-between; border-bottom:1px dashed #e5e7eb; padding:6px 0; }
+
+.btn { padding:8px 12px; border-radius:10px; border:1px solid #e5e7eb; background:#fff; cursor:pointer; }
+.btn:disabled{ opacity:.6; cursor:not-allowed; }
+.btn--ghost { background:#fff; }
+.btn--primary { background:#111827; color:#fff; border-color:#111827; }
+.btn--danger { background:#ef4444; color:#fff; border-color:#ef4444; }
+
+.table-wrap { overflow:auto; }
+.tbl { width:100%; border-collapse:collapse; }
+.tbl th, .tbl td { padding:10px; border-bottom:1px solid #e5e7eb; text-align:left; }
+.tbl th.right, .tbl td.right { text-align:right; }
+.badge { display:inline-block; padding:2px 8px; border-radius:999px; background:#f3f4f6; border:1px solid #e5e7eb; }
+.center { text-align:center; }
+
+.pagination { margin-top:10px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.page-ctrls { display:flex; gap:6px; }
+
+.users .users-head { display:flex; gap:12px; align-items:end; justify-content:space-between; margin:8px 0 12px; }
+.field { display:flex; flex-direction:column; gap:6px; }
+.field input, .field select { padding:8px 10px; border:1px solid #e5e7eb; border-radius:10px; }
+
+.modal { position:fixed; inset:0; background:rgba(17,24,39,.4); display:flex; align-items:center; justify-content:center; z-index:50; }
+.modal-card { background:#fff; border-radius:14px; padding:16px; width: min(560px, 92vw); border:1px solid #e5e7eb; }
+.user-form .form-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:12px; }
+.alert { padding:10px 12px; background:#fff7ed; border:1px solid #fed7aa; border-radius:10px; color:#7c2d12; }

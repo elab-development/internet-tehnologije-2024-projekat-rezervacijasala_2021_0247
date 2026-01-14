@@ -1,0 +1,66 @@
+/* Osnovno poravnanje i spacing, prati header padding */
+.bc-wrap{
+  padding: 10px clamp(16px, 5vw, 48px);
+}
+
+/* "Glass" kontejner */
+.bc{
+  margin: 0;
+  padding: 8px 12px;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  background: color-mix(in oklab, var(--glass) 92%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow);
+}
+
+/* Stavke i linkovi */
+.bc__item{ display: inline-flex; align-items: center; gap: 6px; }
+.bc__sep{ opacity: .6; }
+
+.bc__link{
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: var(--blue);
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: background .2s ease, border-color .2s ease, transform .12s ease;
+}
+.bc__link:hover{
+  background: color-mix(in oklab, var(--blue) 8%, transparent);
+  border-color: color-mix(in oklab, var(--blue) 20%, transparent);
+  transform: translateY(-1px);
+}
+
+/* Trenutna stranica */
+.bc__current{
+  display:inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: var(--muted);
+  background: color-mix(in oklab, var(--sand) 35%, white);
+  border: 1px solid var(--border);
+  font-weight: 600;
+}
+
+/* Ikonice Home i sl. */
+.bc__link > svg{ font-size: 16px; }
+
+/* Accessibility */
+.sr-only{
+  position:absolute !important;
+  width:1px; height:1px;
+  padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+}
+
+/* Mobile: smanji padding i razmake */
+@media (max-width: 640px){
+  .bc{ padding: 6px 8px; gap: 4px; }
+  .bc__link, .bc__current{ padding: 6px 8px; }
+}

@@ -1,0 +1,426 @@
+.sales{
+  padding: clamp(24px, 6vw, 48px) clamp(16px, 5vw, 48px) 72px;
+}
+
+.sales-head{
+  display:flex; align-items:flex-end; justify-content:space-between; gap:16px;
+  margin-bottom: 14px;
+}
+.sales-actions{
+  display:flex; gap:10px; align-items:center;
+}
+.search input{
+  padding: 10px 12px;
+  border:1px solid var(--border);
+  border-radius: 12px;
+  background:#fff;
+  outline:none;
+}
+.search input:focus{ box-shadow: var(--focus-ring); }
+
+.card{
+  background: var(--card);
+  backdrop-filter: blur(8px);
+  border:1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 0;
+  box-shadow: var(--shadow);
+}
+
+.table-wrap{ overflow:auto; }
+.tbl{
+  width:100%;
+  border-collapse: collapse;
+}
+.tbl th, .tbl td{
+  padding: 12px 14px;
+  border-bottom:1px solid var(--border);
+}
+.tbl thead th{
+  background: color-mix(in oklab, var(--sand) 25%, #fff);
+  text-align:left;
+  font-weight:700;
+}
+.right{ text-align:right; }
+.center{ text-align:center; }
+.actions .btn{ margin-left: 6px; }
+
+.btn--danger{
+  color:#8a1f1f;
+  background: #ffe9e9;
+  border:1px solid #f1b6b6;
+}
+.btn--danger:hover{ transform: translateY(-1px); }
+
+/* Modal */
+.modal{
+  position: fixed; inset:0; display:grid; place-items:center;
+  background: rgba(0,0,0,0.25);
+  padding: 16px;
+}
+.modal-card{
+  width: 100%;
+  max-width: 520px;
+  background: #ffffffea;
+  backdrop-filter: blur(8px);
+  border:1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+
+/* Forma (reuse auth stilova) */
+.sale-form .form-actions{
+  display:flex; justify-content:flex-end; gap:10px; margin-top: 12px;
+}
+
+.alert{
+  border-radius: 12px; padding: 10px 12px; margin: 10px 0;
+  border:1px solid var(--border); background: #ffffffbf;
+}
+.alert--ok{ border-color: color-mix(in oklab, var(--green) 40%, var(--border)); }
+.sales{ padding: clamp(24px, 6vw, 48px) clamp(16px, 5vw, 48px) 72px; }
+.sales-head{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom: 14px; }
+.sales-actions{ display:flex; gap:10px; align-items:center; }
+.search input{
+  padding: 10px 12px; border:1px solid var(--border); border-radius: 12px; background:#fff; outline:none;
+}
+.search input:focus{ box-shadow: var(--focus-ring); }
+
+.card{
+  background: var(--card); backdrop-filter: blur(8px);
+  border:1px solid var(--border); border-radius: var(--radius-xl); padding: 0; box-shadow: var(--shadow);
+}
+
+.table-wrap{ overflow:auto; }
+.tbl{ width:100%; border-collapse: collapse; }
+.tbl th, .tbl td{ padding: 12px 14px; border-bottom:1px solid var(--border); }
+.tbl thead th{ background: color-mix(in oklab, var(--sand) 25%, #fff); text-align:left; font-weight:700; }
+.right{ text-align:right; }
+.center{ text-align:center; }
+.actions .btn{ margin-left: 6px; }
+
+.btn--danger{ color:#8a1f1f; background:#ffe9e9; border:1px solid #f1b6b6; }
+.btn--danger:hover{ transform: translateY(-1px); }
+
+/* Badge za status */
+.badge{
+  display:inline-block; padding: 4px 8px; border-radius: 999px; font-size: 12px; border:1px solid var(--border);
+  background:#fff; color: var(--muted);
+}
+.badge--ok{
+  background: color-mix(in oklab, var(--sage) 45%, #fff);
+  border-color: color-mix(in oklab, var(--sage) 50%, var(--border));
+}
+.badge--muted{
+  background: color-mix(in oklab, var(--sand) 40%, #fff);
+  border-color: color-mix(in oklab, var(--sand) 50%, var(--border));
+}
+
+/* Modal */
+.modal{ position: fixed; inset:0; display:grid; place-items:center; background: rgba(0,0,0,0.25); padding: 16px; }
+.modal-card{
+  width: 100%; max-width: 560px; background: #ffffffea; backdrop-filter: blur(8px);
+  border:1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); padding: 18px;
+}
+
+/* Forma */
+.sale-form .form-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top: 12px; }
+.field-row{ display:flex; align-items:center; gap:10px; }
+.label-inline{ margin-bottom:0; }
+textarea{
+  width:100%; padding: 11px 12px; border-radius: 12px; border:1px solid var(--border); background:#fff; outline:none;
+}
+textarea:focus{ box-shadow: var(--focus-ring); }
+/* FILTERS */
+.filters{
+  margin: 10px 0 14px;
+}
+.filters-grid{
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(6, 1fr);
+}
+@media (max-width: 1100px){ .filters-grid{ grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 680px){ .filters-grid{ grid-template-columns: 1fr 1fr; } }
+@media (max-width: 520px){ .filters-grid{ grid-template-columns: 1fr; } }
+
+.filter{ display:flex; flex-direction:column; gap:6px; }
+.filter-label{ font-weight:600; }
+.filter input, .filter select{
+  padding: 10px 12px;
+  border:1px solid var(--border);
+  border-radius: 12px;
+  background:#fff;
+  outline:none;
+}
+.filter input:focus, .filter select:focus{ box-shadow: var(--focus-ring); }
+
+.filter-actions{
+  align-self: end;
+  display:flex; align-items:center; gap:10px; justify-content:flex-end;
+}
+.results-count strong{ font-weight:700; }
+
+/* SORTABLE HEADERS */
+th.sortable{
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  padding-right: 26px; /* prostor za strelicu */
+}
+th.sortable.sorted.asc::after,
+th.sortable.sorted.desc::after{
+  content: "";
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  width: 0; height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+}
+th.sortable.sorted.asc::after{
+  border-bottom: 7px solid var(--blue);
+  transform: translateY(-30%);
+}
+th.sortable.sorted.desc::after{
+  border-top: 7px solid var(--blue);
+  transform: translateY(-70%);
+}
+/* Pagination */
+.pagination{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  justify-content:space-between;
+  margin: 10px 0 14px;
+  padding:10px 12px;
+  background: var(--card);
+  border:1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+.page-size{ display:flex; align-items:center; gap:8px; }
+.page-size select{
+  padding:8px 10px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:#fff;
+}
+.page-info{ color: var(--muted); }
+
+.page-ctrls{ display:flex; gap:8px; align-items:center; }
+.page-btn { min-width:40px; padding:8px 12px; }
+.modal .modal-card form { display: grid; gap: 12px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+label { font-size: 0.9rem; color: #374151; display: block; margin-bottom: 4px; }
+input[type="date"], input[type="time"], input[type="text"], select {
+  width: 100%; padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 8px;
+  background: #fff; outline: none;
+}
+input:focus, select:focus { border-color: #60a5fa; box-shadow: 0 0 0 3px rgba(96,165,250,.2); }
+.fieldset { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; margin: 10px 0 16px; }
+.fieldset > legend { padding: 0 6px; font-weight: 600; color: #374151; }
+.field-row-3 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (max-width: 720px) {
+  .field-row-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* ========== SaleForm (kreiranje/izmena sale) ========== */
+
+.sale-form {
+  display: grid;
+  gap: 14px;
+  max-width: 720px;           /* prijatna širina u modalu */
+}
+
+/* zaglavlje forme */
+.sale-form .auth-head {
+  margin-bottom: 4px;
+}
+.sale-form .auth-head .eyebrow {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+
+/* polja */
+.sale-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sale-form label {
+  font-size: 14px;
+  color: #374151;
+  font-weight: 600;
+}
+
+.sale-form input[type="text"],
+.sale-form input[type="number"],
+.sale-form input[type="date"],
+.sale-form input[type="time"],
+.sale-form select,
+.sale-form textarea {
+  width: 100%;
+  border: 1px solid #d9d9e3;
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font: inherit;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+.sale-form textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+/* fokus i greške */
+.sale-form input:focus,
+.sale-form select:focus,
+.sale-form textarea:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 4px rgba(99,102,241,.12);
+}
+.sale-form .invalid {
+  border-color: #e5484d !important;
+  box-shadow: 0 0 0 4px rgba(229,72,77,.12) !important;
+}
+.sale-form .error {
+  color: #e5484d;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+/* fieldset za raspored */
+.sale-form .fieldset {
+  margin-top: 4px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fafafa;
+}
+.sale-form .fieldset > legend {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111827;
+  padding: 0 6px;
+}
+
+/* red sa checkbox-om */
+.sale-form .field-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sale-form .label-inline {
+  font-weight: 600;
+}
+
+/* 4 mala brojevna polja (X, Y, Š, V) */
+.sale-form .field-row-3 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 8px;
+}
+.sale-form .field-row-3 .field input[type="number"] {
+  text-align: center;
+}
+
+/* responzivno slaganje tih polja */
+@media (max-width: 780px) {
+  .sale-form .field-row-3 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 420px) {
+  .sale-form .field-row-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* dugmad */
+.sale-form .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 6px;
+}
+
+/* (opciono) doteraj modal da lepo nosi širu formu */
+.modal-card {
+  width: min(94vw, 760px);
+  max-height: 90vh;
+  overflow: auto;
+  border-radius: 16px;
+}
+
+/* (opciono) ukloni strelice na number inputu na WebKitu */
+.sale-form input[type=number]::-webkit-outer-spin-button,
+.sale-form input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.sale-form input[type=number] {
+  -moz-appearance: textfield; 
+  appearance: textfield;
+  
+  
+}
+.room.draggable { outline: 1px dashed transparent; }
+.room.draggable:active { cursor: grabbing; outline-color: #9ca3af; }/* platno mora biti relativno */
+.floor-canvas {
+  position: relative;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;        /* ok ako želiš da klipuje unutra */
+  touch-action: none;      /* dozvoli naš drag umesto scroll/pan */
+}
+
+/* mreža */
+.grid-row, .grid-col {
+  position: absolute;
+  pointer-events: none;
+  opacity: .12;
+}
+.grid-row { left: 0; right: 0; height: 1px; border-top: 1px solid #000; }
+.grid-col { top: 0; bottom: 0; width: 1px;  border-left: 1px solid #000; }
+
+/* sobe */
+.room {
+  position: absolute;              /* BITNO */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f9fafb;
+  padding: 6px;
+  user-select: none;               /* da ne selektuje tekst pri dragu */
+  touch-action: none;              /* da ne “vuče” stranicu na mob. */
+}
+.room.draggable { cursor: grab; outline: 1px dashed transparent; }
+.room.draggable:active { cursor: grabbing; outline-color: #9ca3af; }
+
+ .chip {
+  display:inline-block;
+  border:1px solid var(--border, #e5e7eb);
+  border-radius:999px;
+  padding:4px 10px;
+  margin-right:6px;
+  margin-top:4px;
+  background:#fff;
+  font-size:12px;
+  cursor:pointer;
+}
+.chip:hover { background:#f9fafb; }

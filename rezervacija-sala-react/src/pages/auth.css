@@ -1,0 +1,132 @@
+/* Kompatibilno sa tvojom postojećom paletom/varijablama.
+   Ako već imaš globalne :root varijable — možeš ukloniti ovaj blok. */
+:root{
+  --sand:#DDD8C4;
+  --sage:#A3C9A8;
+  --green:#84B59F;
+  --teal:#69A297;
+  --blue:#50808E;
+
+  --bg:#f7f6f1;
+  --txt:#1f2a2e;
+  --muted:#2c3f44;
+  --card:rgba(255,255,255,0.7);
+  --glass:rgba(255,255,255,0.55);
+  --border:rgba(0,0,0,0.06);
+  --shadow:0 10px 30px rgba(0,0,0,0.08);
+  --radius-xl:18px;
+  --radius-lg:14px;
+  --radius-md:10px;
+  --focus-ring:0 0 0 3px rgba(80,128,142,0.35);
+}
+
+*{box-sizing:border-box}
+html,body,#root{height:100%}
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+  background: linear-gradient(180deg, var(--bg), #ffffff);
+  color: var(--txt);
+}
+
+/* Reuse “blobs” i header iz landing.css (ako ih već imaš, ovaj deo preskoči) */
+.lp{ position:relative; min-height:100dvh; display:flex; flex-direction:column; }
+.lp-bg{ position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none; }
+.blob{ position:absolute; filter: blur(60px); opacity:0.55; border-radius:50%; animation: floaty 24s ease-in-out infinite; }
+.blob-1{ width:520px;height:520px; background: radial-gradient(ellipse at center, var(--sage), var(--sand)); top:-120px; left:-140px; }
+.blob-2{ width:480px;height:480px; background: radial-gradient(ellipse at center, var(--green), var(--sage)); top:40%; right:-160px; animation-delay: -6s; }
+.blob-3{ width:420px;height:420px; background: radial-gradient(ellipse at center, var(--teal), var(--blue)); bottom:-140px; left:30%; animation-delay: -12s; }
+@keyframes floaty{ 0%,100%{ transform: translateY(0) translateX(0) scale(1); } 50%{ transform: translateY(-20px) translateX(10px) scale(1.03); } }
+
+.lp-header{ padding: 18px clamp(16px, 5vw, 48px) 0; }
+.lp-nav{
+  display:flex; align-items:center; justify-content:space-between;
+  background: color-mix(in oklab, var(--glass) 92%, transparent);
+  border:1px solid var(--border);
+  border-radius: var(--radius-xl);
+  backdrop-filter: blur(10px);
+  padding: 10px 14px 10px 10px;
+  box-shadow: var(--shadow);
+}
+.brand{ display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius: var(--radius-md); text-decoration:none; }
+.brand__logo{ font-size:22px }
+.brand__text{ font-weight:700; letter-spacing:.3px; color:var(--blue); font-size:18px; }
+
+.nav-actions{ display:flex; gap:10px; }
+.btn{
+  --btn-bg: var(--blue); --btn-tx:#fff;
+  appearance:none; border:none; outline:none;
+  padding:10px 14px; font-weight:600; border-radius:12px; cursor:pointer; text-decoration:none;
+  display:inline-flex; align-items:center; justify-content:center;
+  transition: transform .12s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
+}
+.btn:focus-visible{ box-shadow: var(--focus-ring) }
+.btn--primary{ background: linear-gradient(135deg, var(--blue), var(--teal)); color:#fff; }
+.btn--primary:hover{ transform: translateY(-1px) }
+.btn--ghost{ background: transparent; color: var(--blue); border:1px solid color-mix(in oklab, var(--blue) 35%, transparent); backdrop-filter: blur(6px); }
+.btn--ghost:hover{ background: color-mix(in oklab, var(--blue) 8%, transparent); transform: translateY(-1px); }
+.w-100{ width:100%; }
+
+/*** AUTH LAYOUT ***/
+.auth{
+  display:grid; place-items:center;
+  padding: clamp(24px, 7vw, 64px) 16px 48px;
+}
+.auth-card{
+  width: 100%;
+  max-width: 440px;
+  background: var(--card);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 22px;
+  box-shadow: var(--shadow);
+}
+.auth-head{ text-align:center; margin-bottom: 12px; }
+.eyebrow{
+  display:inline-block; font-weight:700; letter-spacing:.12em; text-transform:uppercase; font-size:12px; color:var(--muted);
+  background: color-mix(in oklab, var(--sand) 40%, white);
+  padding:6px 10px; border-radius:999px; border:1px solid var(--border);
+}
+.auth-head h1{ margin:10px 0 6px; font-size: clamp(22px, 3.6vw, 28px); }
+.muted{ color: var(--muted); }
+
+/* Polja */
+.field{ margin: 12px 0; }
+.field label{ display:block; font-weight:600; margin-bottom:6px; }
+.field input{
+  width:100%;
+  padding: 11px 12px;
+  border-radius: 12px;
+  border:1px solid var(--border);
+  background: #fff;
+  outline: none;
+  transition: box-shadow .15s ease, border-color .15s ease;
+}
+.field input:focus{ box-shadow: var(--focus-ring); border-color: color-mix(in oklab, var(--blue) 25%, var(--border)); }
+.field input.invalid{ border-color: #e86b6b; }
+
+.password-wrap{ position:relative; }
+.btn-eye{
+  position:absolute; right:8px; top:50%; transform: translateY(-50%);
+  background: transparent; border:none; cursor:pointer; font-size:16px;
+  padding: 4px 6px; border-radius: 8px;
+}
+.btn-eye:focus-visible{ box-shadow: var(--focus-ring); }
+
+/* Alerti / greške */
+.alert{
+  border-radius: 12px; padding: 10px 12px; margin: 10px 0;
+  border:1px solid var(--border); background: #ffffffbf;
+}
+.alert--ok{ border-color: color-mix(in oklab, var(--green) 40%, var(--border)); }
+.alert--danger{ border-color: #e86b6b; color:#6a1f1f; background: #ffe9e9; }
+.error{ color:#a33; font-size: 13px; margin-top: 6px; }
+
+/* Footer */
+.lp-footer{ margin-top:auto; padding: 18px clamp(16px, 5vw, 48px); color:var(--muted); text-align:center; }
+
+/* Prefer-reduced-motion */
+@media (prefers-reduced-motion: reduce){
+  .blob, .btn:hover { animation: none !important; transform:none !important; }
+}
